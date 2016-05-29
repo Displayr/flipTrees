@@ -452,7 +452,8 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         names(tree.list)[1] <- "categoryLegend"
     }
 
-    tree.list <- c(tree.type, tree.list)
+    tree.list <- c(list(tree.type), tree.list)
+    names(tree.list)[1] <- "treeType"
     tree.list
 }
 
