@@ -421,7 +421,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
                        n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
                        id = node, Description = node.descriptions[i],
                        tooltip = node.tooltips[i], color = node.color[i],
-                       nodeDistribution = nodes.distribution[[i]], overall.distribution = overall.distribution,
+                       nodeDistribution = nodes.distribution[[i]], overallDistribution = overall.distribution,
                        terminalDescription = terminal.description[i])
         if((node * 2) %in% nodes) { # Adding child nodes, if they exist.
             result$children = vector("list", 2)
@@ -452,7 +452,8 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         names(tree.list)[1] <- "categoryLegend"
     }
 
-    tree.list <- c(tree.type, tree.list)
+    tree.list <- c(list(tree.type), tree.list)
+    names(tree.list)[1] <- "treeType"
     tree.list
 }
 
