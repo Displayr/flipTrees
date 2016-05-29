@@ -1,19 +1,20 @@
 Package: flipTrees
 Type: Package
-Title: Wraps existing tree-based algorithms.
+Title: Wraps existing tree-based algorithms
 Version: 0.1.0
 Author: Tim Bock
 Maintainer: Tim Bock <tim.bock@numbers.net.au>
-Description: Applies the flip project's style template for.
+Description: Applies the flip project's style template to trees.
 License: GPL-3
 LazyData: TRUE
 Suggests:
     testthat,
-    flipData,
+    flipExampleData,
     DAAG
 Imports:
     tree,
-    flipU,
+    flipData,
+    flipFormat,
     hash,
     colorspace,
     rhtmlSankeyTree,
