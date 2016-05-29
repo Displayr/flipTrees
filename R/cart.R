@@ -95,7 +95,8 @@ CART <- function(formula,
 #'   value list to draw legend
 #' @importFrom stats quantile
 #' @importFrom flipU FormatAsReal
-treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = FALSE, numeric.distribution = FALSE,
+
+treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = FALSE, numeric.distribution = TRUE,
                             custom.color = TRUE, num.color.div = 101, const.bin.size = TRUE, draw.legend = TRUE)
 {
     # Creating the names of a node from the frame.
@@ -104,11 +105,9 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
     model <- tree$model
     assigned <- tree$where
     .terminalNode <- function(i) frame$var[i] == frame$var[nrow(frame)]
-    # generate two hash tables that maps output of factor predictor to a meaningful string
-    # e.g. a factor output variable with 3 levels: c("Much Better","Average","Much Worse")
-    # this function converts words to an abbreviation, and generates a hash table with
-    # keys = c("Much Better","Average","Much Worse"), so that "a" -> "MuBe", "b" -> "Ave",
-    # "c" -> "MuWo"
+
+    # This function shortens categories to an abbreviation by spliting strings
+    # and then generates hash tables to facilitate uniqueness checking and searching, etc.
     .getNodeHash <- function(tree.attri)
     {
         .appendNum <- function(text, text.hash, c) {
@@ -167,12 +166,61 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         result = list(features.hash,xlevels.hash)
     }
 
-    tree.hash = .getNodeHash(attri)
+    tree.hash <- .getNodeHash(attri)
+    categoryLegend <- NULL
+    xlevels <- attri$xlevels
+    xlevels.fac <- xlevels[!sapply(xlevels, is.null)]
+    if (length(xlevels.fac) != 0) {
+        hash.l = hash::values(tree.hash[[1]])
+        categoryLegend = rep("", length(hash.l))
+        for (i in 1:length(hash.l)) {
+            categoryShort = hash::values(tree.hash[[2]][[i]])
+            categoryShort = paste(categoryShort, xlevels.fac[[i]], sep = ":")
+            categoryShort = paste(categoryShort, collapse = "; ")
+            categoryLegend[i] = paste0(names(xlevels.fac)[i], ": ", categoryShort)
+        }
+    }
+
     #.trim = function(string) ifelse(nchar(string) >  max.tooltip.length, paste(0,strtrim(string, max.tooltip.length),"..."), string)
     nms = names(tree$where)
     outcome.variable = tree$model[,1]
     outcome.is.factor = is.factor(outcome.variable)
     outcome.name = names(tree$model)[[1]]
+    ymin <- min(frame$yval)
+    ymax <- max(frame$yval)
+    xmin <- min(outcome.variable)
+    xmax <- max(outcome.variable)
+
+    .getNbins <- function(x, xmin, xmax) {
+        unique.x = sort(unique(x))
+        nbins = 1
+
+        if (length(unique.x) == 0) {
+            return(0)
+        } else if (length(unique.x) > 1) {
+            min.diff = .Machine$double.xmax
+            for (i in 1:(length(unique.x)-1)) {
+                min.diff = min(min.diff, unique.x[i+1] - unique.x[i])
+            }
+            granular = TRUE
+            for (i in 1:(length(unique.x)-1)) {
+                if (unique.x[i+1] - unique.x[i] %% min.diff > 0.0001) {
+                    granular = FALSE
+                    break
+                }
+            }
+
+            if (granular && (xmax - xmin + 1) / min.diff <= 30) {
+                nbins = ceiling((xmax - xmin + 1) / min.diff)
+            } else {
+                n.x = length(x)
+                nbins = ceiling(3 + log10(n.x) * log(n.x, 2))
+            }
+
+        }
+
+        return(nbins)
+    }
 
     if (outcome.is.factor)
     { # Classification tree.
@@ -203,18 +251,16 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
             hcl.color <- rev(colorspace::diverge_hcl(num.color.div,  h = c(260, 0), c = 100, l = c(50, 90)))
             divisions <- seq(0, 1, 1/num.color.div)
             node.color[1] <- "#ccc"
-            n.rows <- nrow(frame)
-            if (n.rows > 1)
-                for (i in 2:nrow(frame))
+            for (i in 2:nrow(frame))
+            {
+                y <- max(yprob[i,])
+                div.idx = max(which(y >= divisions))
+                if (div.idx == length(divisions))
                 {
-                    y <- max(yprob[i,])
-                    div.idx = max(which(y >= divisions))
-                    if (div.idx == length(divisions))
-                    {
-                        div.idx <- div.idx - 1
-                    }
-                    node.color[i] <- hcl.color[div.idx]
+                    div.idx <- div.idx - 1
                 }
+                node.color[i] <- hcl.color[div.idx]
+            }
         }
         else
         {
@@ -223,25 +269,44 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
                 node.color[i] <- ""
             }
         }
-        terminal.description <- paste(" Highest =",frame$yval) # Change 1
+        terminal.description <- paste("Highest =",frame$yval) # Change 1
     }
     else
     { # Regression tree.
+        node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1, format = "f"), ":") # Mean
+        node.descriptions <- node.mean
         if (numeric.distribution)
         {
-            node.mean <- paste0("<br>Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1, format = "f")) # Mean
-            node.sse <- paste0("SumSE(", outcome.name, ")", " = ", FormatAsReal(frame$dev, digits = 1, format = "f")) # Sum of Square Error
-            node.rmse <- paste0("RMSE(", outcome.name, ")", " = ", FormatAsReal(sqrt(frame$dev/frame$n), digits = 1, format = "f")) # Root Mean Square Error
-            x <- matrix(cbind(node.mean,node.rmse, node.sse), ncol = 3)
-            node.descriptions <- apply(x, 1, function(x) paste0(x,collapse = "<br>"))
+            nodes.distribution.temp = matrix(rep(NA, nrow(frame)*length(assigned)), nrow = nrow(frame))
+            nodes.counts = rep(1, nrow(frame))
+            for (i in 1:length(assigned)) {
+                this.node = assigned[i]
+                nodes.distribution.temp[this.node, nodes.counts[this.node]] = outcome.variable[i]
+                nodes.counts[this.node] = nodes.counts[this.node] + 1
+            }
+
+            nodes.distribution = c()
+            nbins = .getNbins(outcome.variable, xmin, xmax)
+            bins.breaks = seq(xmin, xmax, (xmax-xmin)/nbins)
+            bins.breaks[1] = xmin - xmin/100
+            bins.breaks[length(bins.breaks)] = xmax + xmax/100
+            overall.distribution = hist(outcome.variable, breaks = bins.breaks, plot = FALSE)$counts
+            overall.distribution = overall.distribution/max(overall.distribution)
+            for (i in 1:nrow(frame)) {
+                this.node.values = nodes.distribution.temp[i,!is.na(nodes.distribution.temp[i,])]
+                if (length(this.node.values) > 0){
+                    nodes.hist = hist(this.node.values, breaks = bins.breaks, plot = FALSE)$counts
+                    nodes.hist = nodes.hist/max(nodes.hist)
+                } else {
+                    nodes.hist = 0
+                }
+                nodes.distribution = c(nodes.distribution, list(nodes.hist))
+            }
+        } else {
+            nodes.distribution = rep(NULL, nrow(frame))
         }
-        else
-        {
-            node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1, format = "f"), ":") # Mean
-            node.descriptions <- node.mean
-        }
-        ymin <- min(frame$yval)
-        ymax <- max(frame$yval)
+
+
 
         eps <- 0.001 # error margin
         # if y is too small, scale it first!
@@ -289,8 +354,22 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
             }
         }
 
-        terminal.description <- paste0("; Mean = ", FormatAsReal(frame$yval)) # Change 2
+        terminal.description <- paste0("Mean = ",FormatAsReal(frame$yval)) # Change 2
     }
+
+    ## create terminal description
+    for (i in 1:nrow(frame)) {
+        if (!.terminalNode(i))
+            terminal.description[i] = "";
+    }
+    ## create tooltip
+    ## check integer
+    if (min(abs(c(frame$n %%1, frame$n %%1-1))) < 0.000001)
+        node.tooltips = paste("n:", frame$n)
+    else
+        node.tooltips = paste("n:", FormatAsReal(frame$n, digits = 1, format = "f"))
+    node.descriptions = paste("Description: ", node.descriptions)
+    node.tooltips = paste(node.tooltips, node.descriptions, sep = "<br>")
 
     root.name <- outcome.name
     .constructNodeName <- function(node, i, i.parent, frame, tree.hash)
@@ -329,8 +408,8 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
             node.name <- paste(nd.txt, collapse = " ")
             node.name <- paste0(variable.name, ": ", node.name)
         }
-        if (.terminalNode(i))
-            node.name <- paste0(node.name, terminal.description[i])
+        #         if (.terminalNode(i))
+        #             node.name <- paste0(node.name, terminal.description[i])
         node.name
     }
     # Function for creating a recursive list.
@@ -339,8 +418,11 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         i.parent <- match(parent.node, nodes)
         i <- match(node, nodes)
         result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash),
-                      n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
-                      id = node, Description = node.descriptions[i], color = node.color[i])
+                       n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
+                       id = node, Description = node.descriptions[i],
+                       tooltip = node.tooltips[i], color = node.color[i],
+                       nodeDistribution = nodes.distribution[[i]], overall.distribution = overall.distribution,
+                       terminalDescription = terminal.description[i])
         if((node * 2) %in% nodes) { # Adding child nodes, if they exist.
             result$children = vector("list", 2)
             for (branch in 1:2)
@@ -364,6 +446,12 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         }
         names(tree.list)[1:2] = c("legendColor","legendText")
     }
+
+    if (!is.null(categoryLegend)) {
+        tree.list <- c(list(categoryLegend), tree.list)
+        names(tree.list)[1] <- "categoryLegend"
+    }
+
     tree.list
 }
 
@@ -383,7 +471,9 @@ print.CART <- function(x, ...)
     {
         tree.list <- treeFrameToList(x, custom.color = TRUE)
         plt <- rhtmlSankeyTree::SankeyTree(tree.list, value = "n", nodeHeight = 100,
-            tooltip = c("n", "Description"), treeColors = TRUE)
+                                           tooltip = "tooltip", treeColors = TRUE, colorLegend = FALSE, categoryLegend = FALSE, terminalDescription = TRUE)
+#         plt <- rhtmlSankeyTree::SankeyTree(tree.list, value = "n", nodeHeight = 100,
+#             tooltip = c("n", "Description"), treeColors = TRUE)
         return(print(plt))
     }
     else if (x$output == "Tree")
