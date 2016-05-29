@@ -22,7 +22,11 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
 #'
 #' @details Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
-#' @importFrom flipU GetData EstimationData FormatAsPercent
+#' @importFrom flipData GetData
+#' @importFrom flipData EstimationData
+#' @importFrom tree tree
+#' @importFrom stats na.exclude
+#' @importFrom colorspace diverge_hcl
 #' @export
 
 CART <- function(formula,
@@ -44,15 +48,6 @@ CART <- function(formula,
     if (method == "model.frame")
         return(data)
     mt <- attr(data, "terms")
-
-
-    #
-    # if (method == "model.frame")
-    #     return(data)
-    # cl <- match.call()
-    # subset <- eval(substitute(subset), data, parent.frame())
-    # weights <- eval(substitute(weights), data, parent.frame())
-    # data <- getData(formula, data)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
@@ -60,16 +55,16 @@ CART <- function(formula,
     estimation.subset  <- processed.data$estimation.subset
     subset <-  processed.data$subset
     if (is.null(weights))
-        result <- tree::tree(formula, data = estimation.data, model = TRUE, ...)
+        result <- tree(formula, data = estimation.data, model = TRUE, ...)
     else
     {
         assign(".weight.1232312", processed.data$weights, envir=.GlobalEnv)
         assign(".estimation.data", estimation.data, envir=.GlobalEnv)
-        result <- tree::tree(formula, data = .estimation.data, weights = .weight.1232312, model = TRUE, ...)
+        result <- tree(formula, data = .estimation.data, weights = .weight.1232312, model = TRUE, ...)
         remove(".weight.1232312",  envir=.GlobalEnv)
         remove(".estimation.data", envir=.GlobalEnv)
     }
-    result$predicted <- predict(result, newdata = data, type = "tree", na.action = stats::na.exclude)
+    result$predicted <- predict(result, newdata = data, type = "tree", na.action = na.exclude)
     class(result) <- append("CART", class(result))
     result$output <- output
     return(result)
@@ -95,7 +90,11 @@ CART <- function(formula,
 #'   value list to draw legend
 #' @importFrom stats quantile
 #' @importFrom flipU FormatAsReal
-
+#' @importFrom hash has.key .set values hash clear
+#' @importFrom flipFormat FormatAsReal
+#' @importFrom flipFormat FormatAsPercent
+#' @importFrom colorspace diverge_hcl
+#'
 treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = FALSE, numeric.distribution = TRUE,
                             custom.color = TRUE, num.color.div = 101, const.bin.size = TRUE, draw.legend = TRUE)
 {
@@ -112,7 +111,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
     {
         .appendNum <- function(text, text.hash, c) {
             text1 <- paste0(text,c)
-            if (hash::has.key(text1, text.hash)) {
+            if (has.key(text1, text.hash)) {
                 text1 <- .appendNum(text, text.hash, c+1)
             }
             return(text1)
@@ -127,7 +126,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         xlevels.fac <- lapply(xlevels.fac, function(obj) gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", obj, perl=TRUE))
         # get the first two or three letters of the words
         for (i in 1:length(xlevels.fac)) {
-            text.hash = hash::hash()
+            text.hash = hash()
             node.texts <- rep("",length(xlevels.fac[[i]]))
             for (j in 1:length(xlevels.fac[[i]])) {
                 text <- xlevels.fac[[i]][j]
@@ -144,23 +143,23 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
                     }
                 }
                 node.text <- paste(node.text, collapse = "")
-                if (!hash::has.key(node.text, text.hash)) {
-                    hash::.set(text.hash, keys=node.text, values=TRUE)
+                if (!has.key(node.text, text.hash)) {
+                    .set(text.hash, keys=node.text, values=TRUE)
                 } else {
                     node.text <- .appendNum(node.text, text.hash, 1)
                 }
                 node.texts[j] <- node.text
             }
-            hash::clear(text.hash)
+            clear(text.hash)
             xlevels.fac[[i]] <- node.texts
         }
         # make hash tables to search for names
         # check uniqueness
-        features.hash = hash::hash(keys = names(xlevels.fac), values = 1:length(xlevels.fac))
+        features.hash = hash(keys = names(xlevels.fac), values = 1:length(xlevels.fac))
         xlevels.hash = c()
         for(node.texts in xlevels.fac) {
             # this approach will fail if more than 26 levels
-            h = hash::hash(keys = letters[1:length(node.texts)],values = node.texts)
+            h = hash(keys = letters[1:length(node.texts)],values = node.texts)
             xlevels.hash = c(xlevels.hash, h)
         }
         result = list(features.hash,xlevels.hash)
@@ -248,7 +247,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         {
             if (num.color.div < 2) stop('number of colors for the tree cannot be < 2')
             if (num.color.div %% 2 == 0) num.color.div = num.color.div + 1
-            hcl.color <- rev(colorspace::diverge_hcl(num.color.div,  h = c(260, 0), c = 100, l = c(50, 90)))
+            hcl.color <- rev(diverge_hcl(num.color.div,  h = c(260, 0), c = 100, l = c(50, 90)))
             divisions <- seq(0, 1, 1/num.color.div)
             node.color[1] <- "#ccc"
             for (i in 2:nrow(frame))
@@ -333,7 +332,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         {
             if (num.color.div < 2) stop('number of colors for the tree cannot be < 2')
             if (num.color.div %% 2 == 0) num.color.div = num.color.div + 1
-            hcl.color <- rev(colorspace::diverge_hcl(num.color.div,  h = c(260, 0), c = 100, l = c(50, 90)))
+            hcl.color <- rev(diverge_hcl(num.color.div,  h = c(260, 0), c = 100, l = c(50, 90)))
             node.color[1] <- "#ccc"
             for (i in 2:nrow(frame))
             {
@@ -402,8 +401,8 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
             # for each letter generated by the tree,e.g."a","b", find its corresponding output string
             for(m in 1:length(node.str[[1]])){
                 str <- node.str[[1]][m]
-                feature.id <- hash::values(features.hash, keys = as.character(variable.name))
-                nd.txt[m] <- hash::values(xlevels.hash[[feature.id]],keys = str)
+                feature.id <- values(features.hash, keys = as.character(variable.name))
+                nd.txt[m] <- values(xlevels.hash[[feature.id]],keys = str)
             }
             node.name <- paste(nd.txt, collapse = " ")
             node.name <- paste0(variable.name, ": ", node.name)
@@ -464,16 +463,15 @@ predict.CART <- function(object, ...)
 }
 
 #' @importFrom graphics plot
+#' @importFrom rhtmlSankeyTree SankeyTree
 #' @export
 print.CART <- function(x, ...)
 {
     if (x$output == "Sankey")
     {
         tree.list <- treeFrameToList(x, custom.color = TRUE)
-        plt <- rhtmlSankeyTree::SankeyTree(tree.list, value = "n", nodeHeight = 100,
-                                           tooltip = "tooltip", treeColors = TRUE, colorLegend = FALSE, categoryLegend = FALSE, terminalDescription = TRUE)
-#         plt <- rhtmlSankeyTree::SankeyTree(tree.list, value = "n", nodeHeight = 100,
-#             tooltip = c("n", "Description"), treeColors = TRUE)
+        plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100,
+                        tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
         return(print(plt))
     }
     else if (x$output == "Tree")
