@@ -89,7 +89,6 @@ CART <- function(formula,
 #' @param draw.legend logical; if \code{true}, output the colors as a sorted RBG
 #'   value list to draw legend
 #' @importFrom stats quantile
-#' @importFrom flipU FormatAsReal
 #' @importFrom hash has.key .set values hash clear
 #' @importFrom flipFormat FormatAsReal
 #' @importFrom flipFormat FormatAsPercent
@@ -223,6 +222,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
 
     if (outcome.is.factor)
     { # Classification tree.
+        tree.type = "Classification"
         yprob = frame$yprob
         nms = colnames(yprob)
         if (show.whole.factor)
@@ -272,6 +272,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
     }
     else
     { # Regression tree.
+        tree.type = "Regression"
         node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1, format = "f"), ":") # Mean
         node.descriptions <- node.mean
         if (numeric.distribution)
@@ -451,6 +452,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         names(tree.list)[1] <- "categoryLegend"
     }
 
+    tree.list <- c(tree.type, tree.list)
     tree.list
 }
 
