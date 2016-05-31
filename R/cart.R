@@ -417,7 +417,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         parent.node <- floor(node / 2)
         i.parent <- match(parent.node, nodes)
         i <- match(node, nodes)
-        result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash),
+        result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash), y = frame$yval[i], y0 = frame$yval[1],
                        n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
                        id = node, Description = node.descriptions[i],
                        tooltip = node.tooltips[i], color = node.color[i],
@@ -473,7 +473,7 @@ print.CART <- function(x, ...)
     if (x$output == "Sankey")
     {
         tree.list <- treeFrameToList(x, custom.color = TRUE)
-        plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100,
+        plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100, numeric.distribution = TRUE,
                         tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
         return(print(plt))
     }
