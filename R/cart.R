@@ -90,8 +90,7 @@ CART <- function(formula,
 #'   value list to draw legend
 #' @importFrom stats quantile
 #' @importFrom hash has.key .set values hash clear
-#' @importFrom flipFormat FormatAsReal
-#' @importFrom flipFormat FormatAsPercent
+#' @importFrom flipFormat FormatAsReal FormatAsPercent
 #' @importFrom colorspace diverge_hcl
 #'
 treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = FALSE, numeric.distribution = TRUE,
