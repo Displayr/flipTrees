@@ -90,8 +90,7 @@ CART <- function(formula,
 #'   value list to draw legend
 #' @importFrom stats quantile
 #' @importFrom hash has.key .set values hash clear
-#' @importFrom flipFormat FormatAsReal
-#' @importFrom flipFormat FormatAsPercent
+#' @importFrom flipFormat FormatAsReal FormatAsPercent
 #' @importFrom colorspace diverge_hcl
 #'
 treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = FALSE, numeric.distribution = TRUE,
@@ -273,7 +272,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
     else
     { # Regression tree.
         tree.type = "Regression"
-        node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1, format = "f"), ":") # Mean
+        node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1), ":") # Mean
         node.descriptions <- node.mean
         if (numeric.distribution)
         {
@@ -367,7 +366,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
     if (min(abs(c(frame$n %%1, frame$n %%1-1))) < 0.000001)
         node.tooltips = paste("n:", frame$n)
     else
-        node.tooltips = paste("n:", FormatAsReal(frame$n, digits = 1, format = "f"))
+        node.tooltips = paste("n:", FormatAsReal(frame$n, digits = 1))
     node.descriptions = paste("Description: ", node.descriptions)
     node.tooltips = paste(node.tooltips, node.descriptions, sep = "<br>")
 
@@ -439,9 +438,9 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
             tree.list <- c(list(hcl.color), list(paste0(seq(0,100,10), "%")), tree.list)
         } else {
             if (const.bin.size){
-                tree.list <- c(list(hcl.color), list(FormatAsReal(seq(ymin, ymax,(ymax - ymin)/10),digits = 1, format = "f")), tree.list)
+                tree.list <- c(list(hcl.color), list(FormatAsReal(seq(ymin, ymax,(ymax - ymin)/10),digits = 1)), tree.list)
             } else {
-                tree.list <- c(list(hcl.color), list(FormatAsReal(quantile(frame$yval, seq(0, 1, 1/10)),digits = 1, format = "f")), tree.list)
+                tree.list <- c(list(hcl.color), list(FormatAsReal(quantile(frame$yval, seq(0, 1, 1/10)),digits = 1)), tree.list)
             }
         }
         names(tree.list)[1:2] = c("legendColor","legendText")
