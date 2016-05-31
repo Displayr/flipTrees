@@ -290,17 +290,20 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
             bins.breaks[1] = xmin - xmin/100
             bins.breaks[length(bins.breaks)] = xmax + xmax/100
             overall.distribution = hist(outcome.variable, breaks = bins.breaks, plot = FALSE)$counts
+            max.dist = max(overall.distribution)
             overall.distribution = overall.distribution/max(overall.distribution)
+
             for (i in 1:nrow(frame)) {
                 this.node.values = nodes.distribution.temp[i,!is.na(nodes.distribution.temp[i,])]
                 if (length(this.node.values) > 0){
                     nodes.hist = hist(this.node.values, breaks = bins.breaks, plot = FALSE)$counts
-                    nodes.hist = nodes.hist/max(nodes.hist)
+                    nodes.hist = nodes.hist/max.dist
                 } else {
                     nodes.hist = 0
                 }
                 nodes.distribution = c(nodes.distribution, list(nodes.hist))
             }
+
         } else {
             nodes.distribution = rep(NULL, nrow(frame))
         }
