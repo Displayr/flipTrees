@@ -183,10 +183,6 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
     outcome.variable = tree$model[,1]
     outcome.is.factor = is.factor(outcome.variable)
     outcome.name = names(tree$model)[[1]]
-    ymin <- min(frame$yval)
-    ymax <- max(frame$yval)
-    xmin <- min(outcome.variable)
-    xmax <- max(outcome.variable)
 
     .getNbins <- function(x, xmin, xmax) {
         unique.x = sort(unique(x))
@@ -271,6 +267,11 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
     }
     else
     { # Regression tree.
+
+        ymin <- min(frame$yval)
+        ymax <- max(frame$yval)
+        xmin <- min(outcome.variable)
+        xmax <- max(outcome.variable)
         tree.type = "Regression"
         node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1), ":") # Mean
         node.descriptions <- node.mean
@@ -419,12 +420,21 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         parent.node <- floor(node / 2)
         i.parent <- match(parent.node, nodes)
         i <- match(node, nodes)
-        result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash), y = frame$yval[i], y0 = frame$yval[1],
-                       n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
-                       id = node, Description = node.descriptions[i],
-                       tooltip = node.tooltips[i], color = node.color[i],
-                       nodeDistribution = nodes.distribution[[i]], overallDistribution = overall.distribution,
-                       terminalDescription = terminal.description[i])
+        if (outcome.is.factor) {
+            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash), y = frame$yval[i], y0 = frame$yval[1],
+                           n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
+                           id = node, Description = node.descriptions[i],
+                           tooltip = node.tooltips[i], color = node.color[i],
+                           terminalDescription = terminal.description[i])
+        } else {
+            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash), y = frame$yval[i], y0 = frame$yval[1],
+                           n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
+                           id = node, Description = node.descriptions[i],
+                           tooltip = node.tooltips[i], color = node.color[i],
+                           nodeDistribution = nodes.distribution[[i]], overallDistribution = overall.distribution,
+                           terminalDescription = terminal.description[i])
+        }
+
         if((node * 2) %in% nodes) { # Adding child nodes, if they exist.
             result$children = vector("list", 2)
             for (branch in 1:2)
