@@ -76,8 +76,6 @@ CART <- function(formula,
 #' @param tree The tree to convert.
 #' @param max.tooltip.length The maximum length of the tooltip (determines the
 #'   scale of the tree).
-#' @param show.whole.factor Controls whether or not all the factor levels are
-#'   displayed in the tooltip.
 #' @param numeric.distribution Outputs additional diagnostics in the tooltip.
 #' @param custom.color logical; if \code{true}, generates custom tree color,
 #'   else use colors provided by sankeyTree package.
@@ -93,7 +91,7 @@ CART <- function(formula,
 #' @importFrom flipFormat FormatAsReal FormatAsPercent
 #' @importFrom colorspace diverge_hcl
 #'
-treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = FALSE, numeric.distribution = TRUE,
+treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution = TRUE,
                             custom.color = TRUE, num.color.div = 101, const.bin.size = TRUE, draw.legend = TRUE)
 {
     # Creating the names of a node from the frame.
@@ -220,21 +218,9 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         tree.type = "Classification"
         yprob = frame$yprob
         nms = colnames(yprob)
-        if (show.whole.factor)
-        {
-            yprob = matrix(paste0(round(yprob*100),"% ", nms[col(yprob)]), ncol = length(nms))
-            node.descriptions <- apply(yprob, 1, function(x) paste0(x,collapse = "<br>"))
-        }
-        else
-        {
-            node.descriptions <- rep("",nrow(frame))
-            for(i in 1:length(node.descriptions))
-            {
-                col.idx <- yprob[i,] > 0.000001
-                node.des <- paste0(round(yprob[i,col.idx]*100),"% ", nms[col.idx])
-                node.descriptions[i] <- paste0(node.des, collapse = "<br>")
-            }
-        }
+        colnames(yprob) = NULL
+        node.descriptions = matrix(paste0(round(yprob*100),"% ", nms[col(yprob)]), ncol = length(nms))
+        node.descriptions <- apply(node.descriptions, 1, function(x) paste0(x,collapse = "<br>"))
         node.descriptions <- paste0("<br>",node.descriptions)
 
         node.color <- rep("0", nrow(frame))
@@ -421,10 +407,11 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, show.whole.factor = 
         i.parent <- match(parent.node, nodes)
         i <- match(node, nodes)
         if (outcome.is.factor) {
-            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash), y = frame$yval[i], y0 = frame$yval[1],
+            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash),
                            n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
                            id = node, Description = node.descriptions[i],
                            tooltip = node.tooltips[i], color = node.color[i],
+                           nodeDistribution = yprob[i,], overallDistribution = yprob[1,], nodeVariables = nms,
                            terminalDescription = terminal.description[i])
         } else {
             result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash), y = frame$yval[i], y0 = frame$yval[1],
