@@ -6,8 +6,7 @@
 a sankeytree.}
 \usage{
 treeFrameToList(tree, max.tooltip.length = 150, numeric.distribution = TRUE,
-  custom.color = TRUE, num.color.div = 101, const.bin.size = TRUE,
-  draw.legend = TRUE)
+  custom.color = "default", num.color.div = 101, const.bin.size = TRUE)
 }
 \arguments{
 \item{tree}{The tree to convert.}
@@ -17,8 +16,9 @@ scale of the tree).}
 
 \item{numeric.distribution}{Outputs additional diagnostics in the tooltip.}
 
-\item{custom.color}{logical; if \code{true}, generates custom tree color,
-else use colors provided by sankeyTree package.}
+\item{custom.color}{Determines the colors of tree branches; if \code{"default"}
+generates tree colors using Q colors; if \code{"sankey"} use colors provided by sankeyTree package;
+or can provide a vector of hex strings as RGB values, for example \code{custom.color = c("#aabbcc","#123456")}.}
 
 \item{num.color.div}{positive integer in the range [2,inf]. Controls the
 color resolution of the tree. A higher value gives a smoother color
@@ -26,9 +26,6 @@ transition.}
 
 \item{const.bin.size}{logical; if \code{true}, each color spans an equal step
 of y-value or an equal number of points.}
-
-\item{draw.legend}{logical; if \code{true}, output the colors as a sorted RBG
-value list to draw legend}
 }
 \description{
 \code{treeFrameToList} Converts a \code{\link{tree}} into a format usable in
