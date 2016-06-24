@@ -155,7 +155,12 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
         xlevels.hash = c()
         for(node.texts in xlevels.fac) {
             # this approach will fail if more than 26 levels
-            h = hash(keys = letters[1:length(node.texts)],values = node.texts)
+            if (length(node.texts) > 26) {
+                hash.keys = c(letters, rep(0:(length(node.texts)-27)))
+            } else {
+                hash.keys = letters[1:length(node.texts)]
+            }
+            h = hash(keys = hash.keys,values = node.texts)
             xlevels.hash = c(xlevels.hash, h)
         }
         result = list(features.hash,xlevels.hash)
@@ -297,7 +302,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     }
     else
     { # Regression tree.
-
+        outcome.variable = as.numeric(outcome.variable)
         ymin <- min(frame$yval)
         ymax <- max(frame$yval)
         xmin <- min(outcome.variable)
@@ -378,16 +383,19 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
             # hcl.color <- rev(diverge_hcl(num.color.div,  h = c(260, 0), c = 100, l = c(50, 90)))
             hcl.color <- rev(diverge_hsv(num.color.div,  h = hsv.base.colors[1,]*360, s = 0.9, v = c(0.8, 0.6)))
             node.color[1] <- "#ccc"
-            for (i in 2:nrow(frame))
-            {
-                y <- frame$yval[i]
-                div.idx <- max(which(y >= divisions))
-                if (div.idx == length(divisions))
+            if (nrow(frame) > 1) {
+                for (i in 2:nrow(frame))
                 {
-                    div.idx <- div.idx - 1
+                    y <- frame$yval[i]
+                    div.idx <- max(which(y >= divisions))
+                    if (div.idx == length(divisions))
+                    {
+                        div.idx <- div.idx - 1
+                    }
+                    node.color[i] <- hcl.color[div.idx]
                 }
-                node.color[i] <- hcl.color[div.idx]
             }
+
         }
         else
         {
