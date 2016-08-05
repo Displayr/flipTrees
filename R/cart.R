@@ -18,6 +18,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
 #' @param method A character string giving the method to use. The only other useful value is "model.frame".
+#' @param auxiliary.data A data frame containing additional variables to be used in imputation.
 #' @param ... Additional arguments that are passed to  \code{\link{tree}}
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
 #'
@@ -35,7 +36,9 @@ CART <- function(formula,
                  weights = NULL,
                  output = "Sankey",
                  missing = "Use partial data",
-                 method = "recursive.partition",...)
+                 method = "recursive.partition",
+                 auxiliary.data = NULL,
+                 ...)
 {
     cl <- match.call()
     .formula <- formula # Hack to work past scoping issues in car package: https://cran.r-project.org/web/packages/car/vignettes/embedding.pdf.
@@ -44,7 +47,7 @@ CART <- function(formula,
     if (!is.null(subset.description))
        attr(subset, "description") <- subset.description
     weights <- eval(substitute(weights), data, parent.frame())
-    data <- GetData(.formula, data)
+    data <- GetData(.formula, data, auxiliary.data)
     if (method == "model.frame")
         return(data)
     mt <- attr(data, "terms")
