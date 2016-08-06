@@ -13,7 +13,8 @@ test_that("Error if missing data",
     type = "Sankey"
     # Changing data
     expect_error((CART(yesno ~ crl.tot + dollar + bang + money + n000 + make, data = spam.sample, missing = "Error if missing data")),NA)
-    expect_that((CART(d2 ~ d1, data = colas, subset = TRUE,  missing = "Error if missing data")), (throws_error()))
+    colas$Q32[unclass(colas$Q32) == 1] <- NA
+    expect_that((CART(Q32 ~ Q2, data = colas, subset = TRUE,  missing = "Error if missing data")), (throws_error()))
     expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = TRUE,  weights = NULL, output = type, missing = "Error if missing data")), (throws_error()))
     # filter
     expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100,  weights = NULL, output = type, missing = "Error if missing data")), (throws_error()))
@@ -33,7 +34,9 @@ for (missing in c("Exclude cases with missing data",
         {
             imputation <- missing == "Imputation (replace missing values with estimates)"
             expect_error((suppressWarnings(CART(yesno ~ crl.tot + dollar + bang + money + n000 + make, data = spam.sample, subset = TRUE,  weights = NULL, output = type, missing = missing))), if (imputation) NULL else NA)
-            #expect_error((suppressWarnings(CART(d2 ~ d1, data = colas, subset = TRUE,  weights = NULL, output = type, missing = missing))), NA)
+            colas$Q32[unclass(colas$Q32) == 1] <- NA
+            colas.small <- colas[, colnames(colas) %in% c("Q32", "Q3", "Q2", "Q4_A", "Q4_B", "Q4_C", "Q11", "Q12")]
+            expect_error((suppressWarnings(CART(Q32 ~ Q3, data = colas.small, subset = TRUE,  weights = NULL, output = type, missing = missing))), NA)
             expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = TRUE,  weights = NULL, output = type, missing = missing))), NA)
             # filter
             expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100,  weights = NULL, output = type, missing = missing))), NA)

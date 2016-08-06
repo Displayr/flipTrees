@@ -18,11 +18,12 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
 #' @param method A character string giving the method to use. The only other useful value is "model.frame".
+#' @param auxiliary.data A data frame containing additional variables to be used in imputation.
 #' @param ... Additional arguments that are passed to  \code{\link{tree}}
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
 #'
 #' @details Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
-#' @importFrom flipData GetData
+#' @importFrom flipData GetData CalibrateWeight
 #' @importFrom flipData EstimationData
 #' @importFrom tree tree
 #' @importFrom stats na.exclude
@@ -35,17 +36,18 @@ CART <- function(formula,
                  weights = NULL,
                  output = "Sankey",
                  missing = "Use partial data",
-                 method = "recursive.partition",...)
+                 method = "recursive.partition",
+                 auxiliary.data = NULL,
+                 ...)
 {
     cl <- match.call()
     .formula <- formula # Hack to work past scoping issues in car package: https://cran.r-project.org/web/packages/car/vignettes/embedding.pdf.
     subset.description <- if (is.null(substitute(subset))) NULL else deparse(substitute(subset))
-
     subset <- eval(substitute(subset), data, parent.frame())
     if (!is.null(subset.description))
        attr(subset, "description") <- subset.description
     weights <- eval(substitute(weights), data, parent.frame())
-    data <- GetData(.formula, data)
+    data <- GetData(.formula, data, auxiliary.data)
     if (method == "model.frame")
         return(data)
     mt <- attr(data, "terms")
@@ -59,7 +61,8 @@ CART <- function(formula,
         result <- tree(formula, data = estimation.data, model = TRUE, ...)
     else
     {
-        assign(".weight.1232312", processed.data$weights, envir=.GlobalEnv)
+        weights <- CalibrateWeight(processed.data$weights)
+        assign(".weight.1232312", weights, envir=.GlobalEnv)
         assign(".estimation.data", estimation.data, envir=.GlobalEnv)
         result <- tree(formula, data = .estimation.data, weights = .weight.1232312, model = TRUE, ...)
         remove(".weight.1232312",  envir=.GlobalEnv)
@@ -156,12 +159,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
         xlevels.hash = c()
         for(node.texts in xlevels.fac) {
             # this approach will fail if more than 26 levels
-            if (length(node.texts) > 26) {
-                hash.keys = c(letters, rep(0:(length(node.texts)-27)))
-            } else {
-                hash.keys = letters[1:length(node.texts)]
-            }
-            h = hash(keys = hash.keys,values = node.texts)
+            h = hash(keys = letters[1:length(node.texts)],values = node.texts)
             xlevels.hash = c(xlevels.hash, h)
         }
         result = list(features.hash,xlevels.hash)
@@ -303,7 +301,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     }
     else
     { # Regression tree.
-        outcome.variable = as.numeric(outcome.variable)
+
         ymin <- min(frame$yval)
         ymax <- max(frame$yval)
         xmin <- min(outcome.variable)
@@ -324,7 +322,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
             nodes.distribution = c()
             nbins = .getNbins(outcome.variable, xmin, xmax)
             bins.breaks = seq(xmin, xmax, (xmax-xmin)/nbins)
-            bins.breaks[1] = xmin - abs(xmin)/100
+            bins.breaks[1] = xmin - xmin/100
             bins.breaks[length(bins.breaks)] = xmax + xmax/100
             overall.distribution = hist(outcome.variable, breaks = bins.breaks, plot = FALSE)$counts
             overall.distribution = overall.distribution/sum(overall.distribution)
@@ -384,19 +382,16 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
             # hcl.color <- rev(diverge_hcl(num.color.div,  h = c(260, 0), c = 100, l = c(50, 90)))
             hcl.color <- rev(diverge_hsv(num.color.div,  h = hsv.base.colors[1,]*360, s = 0.9, v = c(0.8, 0.6)))
             node.color[1] <- "#ccc"
-            if (nrow(frame) > 1) {
-                for (i in 2:nrow(frame))
+            for (i in 2:nrow(frame))
+            {
+                y <- frame$yval[i]
+                div.idx <- max(which(y >= divisions))
+                if (div.idx == length(divisions))
                 {
-                    y <- frame$yval[i]
-                    div.idx <- max(which(y >= divisions))
-                    if (div.idx == length(divisions))
-                    {
-                        div.idx <- div.idx - 1
-                    }
-                    node.color[i] <- hcl.color[div.idx]
+                    div.idx <- div.idx - 1
                 }
+                node.color[i] <- hcl.color[div.idx]
             }
-
         }
         else
         {
