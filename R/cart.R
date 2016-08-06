@@ -189,8 +189,8 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     outcome.name = names(tree$model)[[1]]
 
     .getQColors <- function() {
-        qColors <- c(rgb(91, 155, 213, maxColorValue = 255), # blue
-                     rgb(237, 125, 49, maxColorValue = 255), # orange
+        qColors <- c(rgb(237, 125, 49, maxColorValue = 255), # orange
+                     rgb(91, 155, 213, maxColorValue = 255), # blue
                      rgb(30, 192, 0, maxColorValue = 255), # yelow
                      rgb(255, 35, 35, maxColorValue = 255),  # red
                      rgb(68, 114, 196, maxColorValue = 255), # darker blue
