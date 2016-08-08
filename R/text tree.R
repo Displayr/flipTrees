@@ -1,5 +1,5 @@
 # Helpers used when making a tree from a Text Analysis item.
-
+#' @importFrom flipFormat DataTableWithRItemFormat
 #' @export
 print.textPredictiveTree <- function(x, ...){
     if (!x$print.table)
