@@ -322,7 +322,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
             nodes.distribution = c()
             nbins = .getNbins(outcome.variable, xmin, xmax)
             bins.breaks = seq(xmin, xmax, (xmax-xmin)/nbins)
-            bins.breaks[1] = xmin - xmin/100
+            bins.breaks[1] = xmin - abs(xmin)/100
             bins.breaks[length(bins.breaks)] = xmax + xmax/100
             overall.distribution = hist(outcome.variable, breaks = bins.breaks, plot = FALSE)$counts
             overall.distribution = overall.distribution/sum(overall.distribution)
