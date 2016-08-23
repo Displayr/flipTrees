@@ -41,7 +41,7 @@ CheckDataForTextTree <- function(data, weights = NULL, subset = NULL, missing = 
 
     if (missing == "Error if missing data")
     {
-        ErrorIfMissingDataFound(data.subset)
+        ErrorIfMissingDataFound(subset.data)
         num.valid <- nrow(subset.data)
     } else if (missing == "Imputation") {
         num.valid <- nrow(subset.data)
@@ -62,10 +62,10 @@ CheckDataForTextTree <- function(data, weights = NULL, subset = NULL, missing = 
 
 
 
-#' \code{CreateTextTree} Generate a predictive tree from an outcome variable and a Term Document Matrix.
-#' @param tdm A Term Document Matrix.
+#' \code{CreateTextTree} Generate a predictive tree from an outcome variable and a tree.
+#' @param tree A tree object.
 #' @param outcome.variable The dependent variable used when creating \code{tree}.
-#' @param original.text A vector containing the source text that was used to create the TDM.
+#' @param original.text A vector containing the source text that was used to create the tree.
 #' @param transformed.text A vector containing the processed text.
 #' @param output A string indicating how the result should be printed. Options
 #' are \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, or \code{"Table"}. The first three

@@ -25,7 +25,7 @@ the name of a variable in \code{data}. It may not be an expression.
 \item{weights}{An optional vector of sampling weights, or, the name or,
 the name of a variable in \code{data}. It may not be an expression.}
 
-\item{output}{How the tree is represented: \code{"Sankey"}, \code{"Tree"}, or \code{"Text"}.}
+\item{output}{How the tree is represented: \code{"Sankey"}, \code{"Party"}, \code{"Tree"}, or \code{"Text"}.}
 
 \item{missing}{How missing data is to be treated in the regression. Options are:
 \code{"Error if missing data"}, \code{"Exclude cases with missing data"},

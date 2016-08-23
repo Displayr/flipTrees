@@ -13,7 +13,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' \code{subset} may not
 #' @param weights An optional vector of sampling weights, or, the name or,
 #' the name of a variable in \code{data}. It may not be an expression.
-#' @param output How the tree is represented: \code{"Sankey"}, \code{"Tree"}, or \code{"Text"}.
+#' @param output How the tree is represented: \code{"Sankey"}, \code{"Party"}, \code{"Tree"}, or \code{"Text"}.
 #' @param missing How missing data is to be treated in the regression. Options are:
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
@@ -90,6 +90,7 @@ CART <- function(formula,
 #' @param const.bin.size logical; if \code{true}, each color spans an equal step
 #'   of y-value or an equal number of points.
 #' @importFrom stats quantile
+#' @importFrom graphics hist
 #' @importFrom hash has.key .set values hash clear
 #' @importFrom flipFormat FormatAsReal FormatAsPercent
 #' @importFrom colorspace diverge_hsv
@@ -105,67 +106,8 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     assigned <- tree$where
     .terminalNode <- function(i) frame$var[i] == frame$var[nrow(frame)]
 
-    # This function shortens categories to an abbreviation by spliting strings
-    # and then generates hash tables to facilitate uniqueness checking and searching, etc.
-    .getNodeHash <- function(tree.attri)
-    {
-        .appendNum <- function(text, text.hash, c) {
-            text1 <- paste0(text,c)
-            if (has.key(text1, text.hash)) {
-                text1 <- .appendNum(text, text.hash, c+1)
-            }
-            return(text1)
-        }
-        xlevels <- tree.attri$xlevels
-        xlevels.fac <- xlevels[!sapply(xlevels, is.null)] # strip null
-        if (length(xlevels.fac) == 0)
-            return(NULL)
-        # replace all non alphanumeric letters
-        xlevels.fac <- lapply(xlevels.fac, function(obj) gsub("[^a-zA-Z0-9]", " ", obj))
-        # replace first letter of all words with upper case
-        xlevels.fac <- lapply(xlevels.fac, function(obj) gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", obj, perl=TRUE))
-        # get the first two or three letters of the words
-        for (i in 1:length(xlevels.fac)) {
-            text.hash = hash()
-            node.texts <- rep("",length(xlevels.fac[[i]]))
-            for (j in 1:length(xlevels.fac[[i]])) {
-                text <- xlevels.fac[[i]][j]
-                text.len <- sapply(gregexpr("[[:alpha:]]+", text), function(x) sum(x > 0)) # count number of words
-                if (text.len == 1) {
-                    nchars <- nchar(text)
-                    node.text <- ifelse(nchars > 3, substr(text,1,3), text) # one word
-                } else {
-                    text1 <- strsplit(text," ")[[1]]     # more than one word
-                    node.text <- rep("",length(text1))
-                    nchars <- nchar(text1)
-                    for(l in 1:length(nchars)) {
-                        node.text[l] = ifelse(nchars[l] > 2, substr(text1[l],1,2), text1[l])
-                    }
-                }
-                node.text <- paste(node.text, collapse = "")
-                if (!has.key(node.text, text.hash)) {
-                    .set(text.hash, keys=node.text, values=TRUE)
-                } else {
-                    node.text <- .appendNum(node.text, text.hash, 1)
-                }
-                node.texts[j] <- node.text
-            }
-            clear(text.hash)
-            xlevels.fac[[i]] <- node.texts
-        }
-        # make hash tables to search for names
-        # check uniqueness
-        features.hash = hash(keys = names(xlevels.fac), values = 1:length(xlevels.fac))
-        xlevels.hash = c()
-        for(node.texts in xlevels.fac) {
-            # this approach will fail if more than 26 levels
-            h = hash(keys = letters[1:length(node.texts)],values = node.texts)
-            xlevels.hash = c(xlevels.hash, h)
-        }
-        result = list(features.hash,xlevels.hash)
-    }
-
-    tree.hash <- .getNodeHash(attri)
+    tree.hash <- getNodeHash(attri)
+    print(tree.hash)
     categoryLegend <- NULL
     xlevels <- attri$xlevels
     xlevels.fac <- xlevels[!sapply(xlevels, is.null)]
@@ -514,6 +456,66 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     tree.list
 }
 
+# This function shortens categories to an abbreviation by spliting strings
+# and then generates hash tables to facilitate uniqueness checking and searching, etc.
+getNodeHash <- function(tree.attri)
+{
+    .appendNum <- function(text, text.hash, c) {
+        text1 <- paste0(text,c)
+        if (has.key(text1, text.hash)) {
+            text1 <- .appendNum(text, text.hash, c+1)
+        }
+        return(text1)
+    }
+    xlevels <- tree.attri$xlevels
+    xlevels.fac <- xlevels[!sapply(xlevels, is.null)] # strip null
+    if (length(xlevels.fac) == 0)
+        return(NULL)
+    # replace all non alphanumeric letters
+    xlevels.fac <- lapply(xlevels.fac, function(obj) gsub("[^a-zA-Z0-9]", " ", obj))
+    # replace first letter of all words with upper case
+    xlevels.fac <- lapply(xlevels.fac, function(obj) gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", obj, perl=TRUE))
+    # get the first two or three letters of the words
+    for (i in 1:length(xlevels.fac)) {
+        text.hash = hash()
+        node.texts <- rep("",length(xlevels.fac[[i]]))
+        for (j in 1:length(xlevels.fac[[i]])) {
+            text <- xlevels.fac[[i]][j]
+            text.len <- sapply(gregexpr("[[:alpha:]]+", text), function(x) sum(x > 0)) # count number of words
+            if (text.len == 1) {
+                nchars <- nchar(text)
+                node.text <- ifelse(nchars > 3, substr(text,1,3), text) # one word
+            } else {
+                text1 <- strsplit(text," ")[[1]]     # more than one word
+                node.text <- rep("",length(text1))
+                nchars <- nchar(text1)
+                for(l in 1:length(nchars)) {
+                    node.text[l] = ifelse(nchars[l] > 2, substr(text1[l],1,2), text1[l])
+                }
+            }
+            node.text <- paste(node.text, collapse = "")
+            if (!has.key(node.text, text.hash)) {
+                .set(text.hash, keys=node.text, values=TRUE)
+            } else {
+                node.text <- .appendNum(node.text, text.hash, 1)
+            }
+            node.texts[j] <- node.text
+        }
+        clear(text.hash)
+        xlevels.fac[[i]] <- node.texts
+    }
+    # make hash tables to search for names
+    # check uniqueness
+    features.hash = hash(keys = names(xlevels.fac), values = 1:length(xlevels.fac))
+    xlevels.hash = c()
+    for(node.texts in xlevels.fac) {
+        # this approach will fail if more than 26 levels
+        h = hash(keys = letters[1:length(node.texts)],values = node.texts)
+        xlevels.hash = c(xlevels.hash, h)
+    }
+    result = list(features.hash,xlevels.hash)
+}
+
 #' @importFrom stats predict
 #' @importFrom graphics text
 #' @export
@@ -532,14 +534,17 @@ print.CART <- function(x, ...)
         tree.list <- treeFrameToList(x, custom.color = "default")
         plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100, numeric.distribution = TRUE,
                         tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
-        return(print(plt))
+        print(plt)
     }
     else if (x$output == "Tree")
     {
-        plt <- plot(x)
-        return(text(x))
+        plot(convertTreeToParty(x))
     }
-    class(x) <- "tree"
-    print(x)
+    else if (x$output == "Text")
+    {
+        class(x) <- "tree"
+        print(x)
+    }
+    else
+        stop(paste("Unhandled output: ", x$output))
 }
-
