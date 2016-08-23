@@ -107,7 +107,6 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     .terminalNode <- function(i) frame$var[i] == frame$var[nrow(frame)]
 
     tree.hash <- getNodeHash(attri)
-    print(tree.hash)
     categoryLegend <- NULL
     xlevels <- attri$xlevels
     xlevels.fac <- xlevels[!sapply(xlevels, is.null)]
@@ -538,7 +537,7 @@ print.CART <- function(x, ...)
     }
     else if (x$output == "Tree")
     {
-        plot(convertTreeToParty(x))
+        plot(convertTreeToParty(x), ip_args = list(id = FALSE), tp_args = list(id = FALSE))
     }
     else if (x$output == "Text")
     {

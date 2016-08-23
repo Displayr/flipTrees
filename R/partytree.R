@@ -32,7 +32,7 @@ convertTreeToParty <- function(tree)
             df[[i]] <- factor(NULL, levels = c(left.label, right.label))
         }
         else
-            stop(paste("Unhandled variable class: ", class(v)))
+            stop(paste0("Unhandled variable class: ", class(v)))
     }
     colnames(df) <- var.names
 
@@ -63,7 +63,7 @@ getNode <- function(c, split.c, tf, numeric.breaks)
 {
     if (tf$var[c] == "<leaf>")
     {
-        node <- partynode(c, info = as.character(tf$yval[c]))
+        node <- partynode(c, info = paste0("Mean = ", FormatAsReal(tf$yval[c])))
         c <- c + 1L
         list(node = node, c = c, split.c = split.c)
     }
