@@ -63,7 +63,11 @@ getNode <- function(c, split.c, tf, numeric.breaks)
 {
     if (tf$var[c] == "<leaf>")
     {
-        node <- partynode(c, info = paste0("Mean = ", FormatAsReal(tf$yval[c])))
+        info <- if (is.numeric(tf$yval))
+            FormatAsReal(tf$yval[c])
+        else
+            as.character(tf$yval[c])
+        node <- partynode(c, info = info)
         c <- c + 1L
         list(node = node, c = c, split.c = split.c)
     }
