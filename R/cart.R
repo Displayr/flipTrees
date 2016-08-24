@@ -470,39 +470,10 @@ getNodeHash <- function(tree.attri)
     xlevels.fac <- xlevels[!sapply(xlevels, is.null)] # strip null
     if (length(xlevels.fac) == 0)
         return(NULL)
-    # replace all non alphanumeric letters
-    xlevels.fac <- lapply(xlevels.fac, function(obj) gsub("[^a-zA-Z0-9]", " ", obj))
-    # replace first letter of all words with upper case
-    xlevels.fac <- lapply(xlevels.fac, function(obj) gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", obj, perl=TRUE))
-    # get the first two or three letters of the words
-    for (i in 1:length(xlevels.fac)) {
-        text.hash = hash()
-        node.texts <- rep("",length(xlevels.fac[[i]]))
-        for (j in 1:length(xlevels.fac[[i]])) {
-            text <- xlevels.fac[[i]][j]
-            text.len <- sapply(gregexpr("[[:alpha:]]+", text), function(x) sum(x > 0)) # count number of words
-            if (text.len == 1) {
-                nchars <- nchar(text)
-                node.text <- ifelse(nchars > 3, substr(text,1,3), text) # one word
-            } else {
-                text1 <- strsplit(text," ")[[1]]     # more than one word
-                node.text <- rep("",length(text1))
-                nchars <- nchar(text1)
-                for(l in 1:length(nchars)) {
-                    node.text[l] = ifelse(nchars[l] > 2, substr(text1[l],1,2), text1[l])
-                }
-            }
-            node.text <- paste(node.text, collapse = "")
-            if (!has.key(node.text, text.hash)) {
-                .set(text.hash, keys=node.text, values=TRUE)
-            } else {
-                node.text <- .appendNum(node.text, text.hash, 1)
-            }
-            node.texts[j] <- node.text
-        }
-        clear(text.hash)
-        xlevels.fac[[i]] <- node.texts
-    }
+
+    for (i in 1:length(xlevels.fac))
+        xlevels.fac[[i]] <- getShortenedLevels(xlevels.fac[[i]])
+
     # make hash tables to search for names
     # check uniqueness
     features.hash = hash(keys = names(xlevels.fac), values = 1:length(xlevels.fac))
@@ -513,6 +484,43 @@ getNodeHash <- function(tree.attri)
         xlevels.hash = c(xlevels.hash, h)
     }
     result = list(features.hash,xlevels.hash)
+}
+
+getShortenedLevels <- function(lvls)
+{
+    # replace all non alphanumeric letters
+    lvls <- gsub("[^a-zA-Z0-9]", " ", lvls)
+
+    # replace first letter of all words with upper case
+    lvls <- gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", lvls, perl=TRUE)
+
+    # get the first two or three letters of the words
+    text.hash = hash()
+    node.texts <- rep("",length(lvls))
+    for (j in 1:length(lvls)) {
+        text <- lvls[j]
+        text.len <- sapply(gregexpr("[[:alpha:]]+", text), function(x) sum(x > 0)) # count number of words
+        if (text.len == 1) {
+            nchars <- nchar(text)
+            node.text <- ifelse(nchars > 3, substr(text,1,3), text) # one word
+        } else {
+            text1 <- strsplit(text," ")[[1]]     # more than one word
+            node.text <- rep("",length(text1))
+            nchars <- nchar(text1)
+            for(l in 1:length(nchars)) {
+                node.text[l] = ifelse(nchars[l] > 2, substr(text1[l],1,2), text1[l])
+            }
+        }
+        node.text <- paste(node.text, collapse = "")
+        if (!has.key(node.text, text.hash)) {
+            .set(text.hash, keys=node.text, values=TRUE)
+        } else {
+            node.text <- .appendNum(node.text, text.hash, 1)
+        }
+        node.texts[j] <- node.text
+    }
+    clear(text.hash)
+    node.texts
 }
 
 #' @importFrom stats predict
@@ -529,7 +537,7 @@ predict.CART <- function(object, ...)
 print.CART <- function(x, ...)
 {
     if (nrow(x$frame) == 1)
-        stop("Output tree has one node and no splits. Change the inputs to produce a non-trivial tree.")
+        stop("Output tree has one node and no splits. Change the inputs to produce a useful tree.")
 
     if (x$output == "Sankey")
     {

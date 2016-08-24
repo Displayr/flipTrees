@@ -36,11 +36,15 @@ convertTreeToParty <- function(tree)
     }
     colnames(df) <- sapply(var.names, truncateLabel)
 
+    yval <- tf$yval
+    if (is.factor(yval))
+        levels(yval) <- getShortenedLevels(levels(yval))
+
     outcome.name <- truncateLabel(deparse(tree$terms[[2]]), 10)
 
     c <- 1L
     split.c <- 1L
-    nd <- getNode(c, split.c, tf, numeric.breaks, outcome.name)
+    nd <- getNode(c, split.c, not.leaf , yval, numeric.breaks, outcome.name)
     party(nd$node, df)
 }
 
@@ -61,19 +65,9 @@ factorSplitsLabel <- function(t, levels.hash)
 }
 
 #' @importFrom partykit partynode partysplit
-getNode <- function(c, split.c, tf, numeric.breaks, outcome.name)
+getNode <- function(c, split.c, not.leaf, yval, numeric.breaks, outcome.name)
 {
-    if (tf$var[c] == "<leaf>")
-    {
-        info <- if (is.numeric(tf$yval))
-            paste0(outcome.name, ":\n", FormatAsReal(tf$yval[c]), "\n")
-        else
-            paste0(outcome.name, ":\n", as.character(tf$yval[c]), "\n")
-        node <- partynode(c, info = info)
-        c <- c + 1L
-        list(node = node, c = c, split.c = split.c)
-    }
-    else
+    if (not.leaf[c])
     {
         br <- numeric.breaks[split.c]
         splt <- if (is.na(br))
@@ -84,10 +78,20 @@ getNode <- function(c, split.c, tf, numeric.breaks, outcome.name)
         c <- c + 1L
         split.c <- split.c + 1L
 
-        left.child <- getNode(c, split.c, tf, numeric.breaks, outcome.name)
-        right.child <- getNode(left.child$c, left.child$split.c, tf, numeric.breaks, outcome.name)
+        left.child <- getNode(c, split.c, not.leaf, yval, numeric.breaks, outcome.name)
+        right.child <- getNode(left.child$c, left.child$split.c, not.leaf, yval, numeric.breaks, outcome.name)
         node <- partynode(right.child$c, split = splt, kids = list(left.child$node, right.child$node))
         list(node = node, c = right.child$c, split.c = right.child$split.c)
+    }
+    else
+    {
+        info <- if (is.numeric(yval))
+            paste0(outcome.name, ":\n", FormatAsReal(yval[c]), "\n")
+        else
+            paste0(outcome.name, ":\n", as.character(yval[c]), "\n")
+        node <- partynode(c, info = info)
+        c <- c + 1L
+        list(node = node, c = c, split.c = split.c)
     }
 }
 
