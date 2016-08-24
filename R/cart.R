@@ -528,6 +528,9 @@ predict.CART <- function(object, ...)
 #' @export
 print.CART <- function(x, ...)
 {
+    if (nrow(x$frame) == 1)
+        stop("Output tree has one node and no splits. Change the inputs to produce a non-trivial tree.")
+
     if (x$output == "Sankey")
     {
         tree.list <- treeFrameToList(x, custom.color = "default")
