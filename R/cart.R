@@ -459,13 +459,6 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
 # and then generates hash tables to facilitate uniqueness checking and searching, etc.
 getNodeHash <- function(tree.attri)
 {
-    .appendNum <- function(text, text.hash, c) {
-        text1 <- paste0(text,c)
-        if (has.key(text1, text.hash)) {
-            text1 <- .appendNum(text, text.hash, c+1)
-        }
-        return(text1)
-    }
     xlevels <- tree.attri$xlevels
     xlevels.fac <- xlevels[!sapply(xlevels, is.null)] # strip null
     if (length(xlevels.fac) == 0)
@@ -488,6 +481,14 @@ getNodeHash <- function(tree.attri)
 
 getShortenedLevels <- function(lvls)
 {
+    .appendNum <- function(text, text.hash, c) {
+        text1 <- paste0(text,c)
+        if (has.key(text1, text.hash)) {
+            text1 <- .appendNum(text, text.hash, c+1)
+        }
+        return(text1)
+    }
+
     # replace all non alphanumeric letters
     lvls <- gsub("[^a-zA-Z0-9]", " ", lvls)
 
