@@ -539,9 +539,7 @@ print.CART <- function(x, ...)
         print(plt)
     }
     else if (x$output == "Tree")
-    {
-        plot(convertTreeToParty(x), ip_args = list(id = FALSE), tp_args = list(id = FALSE))
-    }
+        plot(convertTreeToParty(x), ip_args = list(id = FALSE), tp_args = list(id = FALSE, height = 3))
     else if (x$output == "Text")
     {
         class(x) <- "tree"

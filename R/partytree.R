@@ -34,11 +34,13 @@ convertTreeToParty <- function(tree)
         else
             stop(paste0("Unhandled variable class: ", class(v)))
     }
-    colnames(df) <- var.names
+    colnames(df) <- sapply(var.names, truncateLabel)
+
+    outcome.name <- truncateLabel(deparse(tree$terms[[2]]), 10)
 
     c <- 1L
     split.c <- 1L
-    nd <- getNode(c, split.c, tf, numeric.breaks)
+    nd <- getNode(c, split.c, tf, numeric.breaks, outcome.name)
     party(nd$node, df)
 }
 
@@ -59,14 +61,14 @@ factorSplitsLabel <- function(t, levels.hash)
 }
 
 #' @importFrom partykit partynode partysplit
-getNode <- function(c, split.c, tf, numeric.breaks)
+getNode <- function(c, split.c, tf, numeric.breaks, outcome.name)
 {
     if (tf$var[c] == "<leaf>")
     {
         info <- if (is.numeric(tf$yval))
-            FormatAsReal(tf$yval[c])
+            paste0(outcome.name, ":\n", FormatAsReal(tf$yval[c]), "\n")
         else
-            as.character(tf$yval[c])
+            paste0(outcome.name, ":\n", as.character(tf$yval[c]), "\n")
         node <- partynode(c, info = info)
         c <- c + 1L
         list(node = node, c = c, split.c = split.c)
@@ -82,9 +84,17 @@ getNode <- function(c, split.c, tf, numeric.breaks)
         c <- c + 1L
         split.c <- split.c + 1L
 
-        left.child <- getNode(c, split.c, tf, numeric.breaks)
-        right.child <- getNode(left.child$c, left.child$split.c, tf, numeric.breaks)
+        left.child <- getNode(c, split.c, tf, numeric.breaks, outcome.name)
+        right.child <- getNode(left.child$c, left.child$split.c, tf, numeric.breaks, outcome.name)
         node <- partynode(right.child$c, split = splt, kids = list(left.child$node, right.child$node))
         list(node = node, c = right.child$c, split.c = right.child$split.c)
     }
+}
+
+truncateLabel <- function(label, truncation.length = 20)
+{
+    if (nchar(label) > truncation.length)
+        paste0(substr(label, 1, truncation.length - 2), "...")
+    else
+        label
 }
