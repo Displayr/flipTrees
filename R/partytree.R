@@ -31,6 +31,8 @@ convertTreeToParty <- function(tree)
             right.label <- factorSplitsLabel(right.text, levels.hash)
             df[[i]] <- factor(NULL, levels = c(left.label, right.label))
         }
+        else if (is.logical(v))
+            df[[i]] <- factor(NULL, levels = c("FALSE", "TRUE"))
         else
             stop(paste0("Unhandled variable class: ", class(v)))
     }
@@ -50,7 +52,10 @@ convertTreeToParty <- function(tree)
 
 parseNumericSplitsText <- function(t)
 {
-    as.numeric(substr(t, 2, nchar(t)))
+    num <- as.numeric(substr(t, 2, nchar(t)))
+    if (is.na(num))
+        stop(paste("The following could not be parsed as numeric:", t))
+    num
 }
 
 factorSplitsLabel <- function(t, levels.hash)

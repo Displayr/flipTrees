@@ -48,15 +48,12 @@ CART <- function(formula,
        attr(subset, "description") <- subset.description
     weights <- eval(substitute(weights), data, parent.frame())
     data <- GetData(.formula, data, auxiliary.data)
+    data <- convertBinaryVariables(data)
     if (method == "model.frame")
         return(data)
-    mt <- attr(data, "terms")
     processed.data <- EstimationData(formula, data, subset, weights, missing)
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
-    post.missing.data.estimation.sample <- processed.data$post.missing.data.estimation.sample
-    estimation.subset  <- processed.data$estimation.subset
-    subset <-  processed.data$subset
     if (is.null(weights))
         result <- tree(formula, data = estimation.data, model = TRUE, ...)
     else
@@ -360,7 +357,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     node.tooltips = paste(node.tooltips, node.descriptions, sep = "<br>")
 
     root.name <- outcome.name
-    .constructNodeName <- function(node, i, i.parent, frame, tree.hash)
+    .constructNodeName <- function(node, i, i.parent, frame, tree.hash, model)
     {
         if (i == 1)
             return(root.name)
@@ -369,19 +366,14 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
         variable.name <- frame$var[i.parent]
         node.names <- frame$splits[i.parent,]
         node.name <- ifelse(node %% 2 == 0, node.names[1], node.names[2])
+        is.binary <- is.logical(model[[variable.name]])
 
-        if (grepl("<0.5", node.name))
-        {   #Binary split (probably)
+        if (is.binary && grepl("<0.5", node.name))
             node.name <- paste("Not", variable.name)
-        }
-        else if (grepl(">0.5", node.name))
-        {
+        else if (is.binary && grepl(">0.5", node.name))
             node.name <- variable.name
-        }
         else if (grepl("[<>]", node.name))
-        {
             node.name <- paste(variable.name, node.name)
-        }
         else
         {
             node.name <- sub(":", "", node.name)
@@ -401,19 +393,19 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
         node.name
     }
     # Function for creating a recursive list.
-    .constructNodes <- function(node, nodes, frame, tree.hash) {
+    .constructNodes <- function(node, nodes, frame, tree.hash, model) {
         parent.node <- floor(node / 2)
         i.parent <- match(parent.node, nodes)
         i <- match(node, nodes)
         if (outcome.is.factor) {
-            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash),
+            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash, model),
                            n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
                            id = node, Description = node.descriptions[i],
                            tooltip = node.tooltips[i], color = node.color[i],
                            nodeDistribution = yprob[i,], overallDistribution = yprob[1,], nodeVariables = nms,
                            terminalDescription = terminal.description[i])
         } else {
-            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash), y = frame$yval[i], y0 = frame$yval[1],
+            result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash, model), y = frame$yval[i], y0 = frame$yval[1],
                            n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
                            id = node, Description = node.descriptions[i],
                            tooltip = node.tooltips[i], color = node.color[i],
@@ -424,13 +416,13 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
         if((node * 2) %in% nodes) { # Adding child nodes, if they exist.
             result$children = vector("list", 2)
             for (branch in 1:2)
-                result$children[[branch]] = .constructNodes(node * 2 + branch - 1, nodes, frame, tree.hash)
+                result$children[[branch]] = .constructNodes(node * 2 + branch - 1, nodes, frame, tree.hash, model)
         }
         result
     }
     # Creating the recrusive list.
     nodes <- as.numeric(dimnames(frame)[[1]])
-    tree.list <- .constructNodes(1, nodes, frame, tree.hash)
+    tree.list <- .constructNodes(1, nodes, frame, tree.hash, model)
 #     if (custom.color)
 #     {
 #         if (outcome.is.factor) {
@@ -522,6 +514,22 @@ getShortenedLevels <- function(lvls)
     }
     clear(text.hash)
     node.texts
+}
+
+# Converts numeric variables that take only values 0 and 1 to logical.
+convertBinaryVariables <- function(data)
+{
+    for (nms in names(data))
+    {
+        d <- data[[nms]]
+        if (is.numeric(d))
+        {
+            u <- sort(unique(d))
+            if (length(u) == 2 && all(u == 0:1))
+                data[[nms]] <- as.logical(d)
+        }
+    }
+    data
 }
 
 #' @importFrom stats predict
