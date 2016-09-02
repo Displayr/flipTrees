@@ -111,6 +111,11 @@ CART <- function(formula,
                                  na.action = na.exclude)
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
+
+        # Fix for "Cannot serialize result: 'names' attribute [5] must be the same length as the vector [1]"
+        if (is.null(result$node$kids))
+            names(result$node) <- "id"
+
         class(result) <- "CART"
     }
     else
