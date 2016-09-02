@@ -13,9 +13,11 @@ Suggests:
     DAAG
 Imports:
     tree,
+    rpart,
     partykit,
     flipData,
     flipFormat,
+    flipU,
     hash,
     colorspace,
     rhtmlSankeyTree,

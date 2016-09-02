@@ -1,28 +1,30 @@
 #' @importFrom partykit party
-convertTreeToParty <- function(tree)
+#' @importFrom flipU OutcomeName
+convertTreeFrameToParty <- function(frame, xlevels, model, terms)
 {
-    tf <- tree$frame
     df <- data.frame()
 
-    node.hash <- getNodeHash(attributes(tree))
+    node.hash <- getNodeHash(xlevels)
 
-    not.leaf <- tf$var != "<leaf>"
+    not.leaf <- frame$var != "<leaf>"
     n.splits <- sum(not.leaf)
-    non.leaf.indices <- (1:nrow(tf))[not.leaf]
-    var.names <- as.character(tf$var[non.leaf.indices])
+    non.leaf.indices <- (1:nrow(frame))[not.leaf]
+    var.names <- as.character(frame$var[non.leaf.indices])
     numeric.breaks <- rep(NA, n.splits)
+    numeric.breaks.reversed <- logical(n.splits)
 
     for (i in 1:n.splits)
     {
-        v <- tree$model[[var.names[i]]]
+        v <- model[[var.names[i]]]
         idx <- non.leaf.indices[i]
-        left.text <- tf$splits[idx, 1]
-        right.text <- tf$splits[idx, 2]
+        left.text <- frame$splits[idx, 1]
+        right.text <- frame$splits[idx, 2]
 
         if (is.numeric(v))
         {
             df[[i]] <- numeric(0)
             numeric.breaks[i] <- parseNumericSplitsText(left.text)
+            numeric.breaks.reversed[i] <- grepl(">", left.text)
         }
         else if (is.factor(v))
         {
@@ -38,16 +40,20 @@ convertTreeToParty <- function(tree)
     }
     colnames(df) <- sapply(var.names, truncateLabel)
 
-    yval <- tf$yval
+    yval <- frame$yval
     if (is.factor(yval))
         levels(yval) <- getShortenedLevels(levels(yval))
 
-    outcome.name <- truncateLabel(deparse(tree$terms[[2]]), 10)
+    outcome.name <- truncateLabel(OutcomeName(terms), 10)
 
-    c <- 1L
-    split.c <- 1L
-    nd <- getNode(c, split.c, not.leaf , yval, numeric.breaks, outcome.name)
+    nd <- getPartyNodes(1L, 1L, not.leaf, yval, numeric.breaks, numeric.breaks.reversed, outcome.name)
     party(nd$node, df)
+}
+
+modifyPartyForOutput <- function(obj)
+{
+    frame <- partyToTreeFrame(obj)
+    convertTreeFrameToParty(frame, getXLevels(obj), obj$data, obj$terms)
 }
 
 parseNumericSplitsText <- function(t)
@@ -66,15 +72,16 @@ factorSplitsLabel <- function(t, levels.hash)
         ch <- substr(t, i, i)
         labels[i - 1] <- levels.hash[[ch]]
     }
-    paste(labels, collapse = ",\n")
+    paste(labels, collapse = ", ")
 }
 
 #' @importFrom partykit partynode partysplit
-getNode <- function(c, split.c, not.leaf, yval, numeric.breaks, outcome.name)
+getPartyNodes <- function(c, split.c, not.leaf, yval, numeric.breaks, numeric.breaks.reversed, outcome.name)
 {
     if (not.leaf[c])
     {
         br <- numeric.breaks[split.c]
+        is.reversed <- numeric.breaks.reversed[split.c]
         splt <- if (is.na(br))
             partysplit(split.c, index = 1:2)
         else
@@ -83,9 +90,15 @@ getNode <- function(c, split.c, not.leaf, yval, numeric.breaks, outcome.name)
         c <- c + 1L
         split.c <- split.c + 1L
 
-        left.child <- getNode(c, split.c, not.leaf, yval, numeric.breaks, outcome.name)
-        right.child <- getNode(left.child$c, left.child$split.c, not.leaf, yval, numeric.breaks, outcome.name)
-        node <- partynode(right.child$c, split = splt, kids = list(left.child$node, right.child$node))
+        left.child <- getPartyNodes(c, split.c, not.leaf, yval, numeric.breaks, numeric.breaks.reversed,
+                              outcome.name)
+        right.child <- getPartyNodes(left.child$c, left.child$split.c, not.leaf, yval, numeric.breaks,
+                               numeric.breaks.reversed, outcome.name)
+        kids <- if (is.reversed)
+            list(right.child$node, left.child$node)
+        else
+            list(left.child$node, right.child$node)
+        node <- partynode(right.child$c, split = splt, kids = kids)
         list(node = node, c = right.child$c, split.c = right.child$split.c)
     }
     else
@@ -106,4 +119,132 @@ truncateLabel <- function(label, truncation.length = 20)
         paste0(substr(label, 1, truncation.length - 2), "...")
     else
         label
+}
+
+extractNodeInfo <- function(node.list, node, outcome.var, row.i, var.names, node.i)
+{
+    result <- list()
+    result[["isleaf"]] <- is.null(node$split)
+    result[["node"]] <- node.i
+
+    if (!result[["isleaf"]])
+    {
+        result[["var"]] <- var.names[node$split$varid]
+        result[["varid"]] <- node$split$varid
+        s <- node$split
+        if (!is.null(s$breaks))
+            result[["breaks"]] <-  s$breaks
+        else if (!is.null(s$index))
+            result[["index"]] <- s$index
+        else
+            stop(paste("Unhandled split", s))
+    }
+
+    if (is.factor(outcome.var))
+    {
+        node.row.i <- as.integer(row.names(node$info$estfun))
+        result[["yprob"]] <- computeYProb(outcome.var, row.i, node.row.i)
+        lvls <- levels(outcome.var)
+        result[["yval"]] <- factor(lvls[which.max(result[["yprob"]])], lvls)
+    }
+    else if (is.numeric(outcome.var))
+        result[["yval"]] <- unname(node$info$coefficients)
+    else
+        stop(paste("Outcome class not handled:", class(outcome.var)))
+
+    result[["n"]] <- unname(node$info$nobs)
+
+    node.list[[length(node.list) + 1]] <- result
+
+    if (!is.null(node$kids))
+    {
+        node.list <- extractNodeInfo(node.list, node$kids[[1]], outcome.var, row.i, var.names, node.i * 2)
+        node.list <- extractNodeInfo(node.list, node$kids[[2]], outcome.var, row.i, var.names, node.i * 2 + 1)
+    }
+
+    node.list
+}
+
+computeYProb <- function(outcome.var, row.i, node.row.i)
+{
+    lvls <- levels(outcome.var)
+    yfreq <- numeric(length(lvls))
+    c <- 1
+    for (i in 1:length(row.i))
+    {
+        if (node.row.i[c] == row.i[i])
+        {
+            j <- (1:length(lvls))[outcome.var[i] == lvls]
+            yfreq[j] <- yfreq[j] + 1
+            if (c == length(node.row.i))
+                break
+            else
+                c <- c + 1
+        }
+    }
+    yprob <- prop.table(yfreq)
+    names(yprob) <- lvls
+    yprob
+}
+
+#' @importFrom flipU OutcomeName
+partyToTreeFrame <- function(obj)
+{
+    outcome.var <- obj$data[[OutcomeName(obj$terms)]]
+    row.i <- as.integer(row.names(obj$data))
+    node.list <- extractNodeInfo(list(), obj$node, outcome.var, row.i, colnames(obj$data), 1)
+    n.nodes <- length(node.list)
+    var.names <- unlist(lapply(node.list, function(x) {
+        if (!is.null(x$var))
+            x$var
+        else
+            "<leaf>"
+    }))
+    n <- unlist(lapply(node.list, function(x) x$n))
+    yval <- unlist(lapply(node.list, function(x) x$yval))
+    splits <- matrix("", n.nodes, 2)
+    for (i in 1:n.nodes)
+    {
+        nd <- node.list[[i]]
+        if (!is.null(nd$breaks))
+        {
+            splits[i, 1] <- paste0("<" , nd$breaks)
+            splits[i, 2] <- paste0(">" , nd$breaks)
+        }
+        else if (!is.null(nd$index))
+        {
+            idx <- nd$index
+            if (length(idx) > length(letters))
+                stop("There are too many levels in the factor to be represented by letters.")
+            lttrs <- letters[1:length(idx)]
+            splits[i, 1] <- paste0(":", paste(lttrs[!is.na(idx) & idx == 1], collapse = ""))
+            splits[i, 2] <- paste0(":", paste(lttrs[!is.na(idx) & idx == 2], collapse = ""))
+        }
+    }
+
+    frame <- data.frame(var = var.names, n = n, yval = yval, splits = rep(0, length(var.names)))
+    frame$splits <- splits # the matrix will be split into columns if we assign it to frame in the line above
+
+    outcome.is.factor <- !is.null(node.list[[1]]$yprob)
+    if (outcome.is.factor)
+    {
+        yprob <- matrix(NA, n.nodes, length(node.list[[1]]$yprob))
+        for (i in 1:n.nodes)
+            yprob[i, ] <- node.list[[i]]$yprob
+        colnames(yprob) <- names(node.list[[1]]$yprob)
+        frame$yprob <- yprob
+    }
+    rownames(frame) <- as.character(unlist(lapply(node.list, function(x) x$node)))
+    frame
+}
+
+getXLevels <- function(obj)
+{
+    var.names <- attr(obj$terms, "term.labels")
+    result <- vector("list", length(var.names))
+    names(result) <- var.names
+    for (nm in var.names)
+        if (is.factor(obj$data[[nm]]))
+            result[[nm]] <- levels(obj$data[[nm]])
+    result
 }

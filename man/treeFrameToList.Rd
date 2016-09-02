@@ -5,11 +5,18 @@
 \title{\code{treeFrameToList} Converts a \code{\link{tree}} into a format usable in
 a sankeytree.}
 \usage{
-treeFrameToList(tree, max.tooltip.length = 150, numeric.distribution = TRUE,
-  custom.color = "default", num.color.div = 101, const.bin.size = TRUE)
+treeFrameToList(frame, xlevels, model, assigned, max.tooltip.length = 150,
+  numeric.distribution = TRUE, custom.color = "default",
+  num.color.div = 101, const.bin.size = TRUE)
 }
 \arguments{
-\item{tree}{The tree to convert.}
+\item{frame}{The tree frame.}
+
+\item{xlevels}{Levels of depedent variables that are factors.}
+
+\item{model}{Data used by the model.}
+
+\item{assigned}{The nodes that the cases have been assigned.}
 
 \item{max.tooltip.length}{The maximum length of the tooltip (determines the
 scale of the tree).}

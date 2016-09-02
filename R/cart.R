@@ -18,6 +18,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
 #' @param method A character string giving the method to use. The only other useful value is "model.frame".
+#' @param algorithm The algorithm used to generate the tree. Takes the values "tree", "rpart" and "party".
 #' @param auxiliary.data A data frame containing additional variables to be used in imputation.
 #' @param ... Additional arguments that are passed to  \code{\link{tree}}
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
@@ -25,8 +26,11 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @details Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
 #' @importFrom flipData GetData CalibrateWeight
 #' @importFrom flipData EstimationData
+#' @importFrom flipU OutcomeName
+#' @importFrom partykit glmtree lmtree mob
+#' @importFrom rpart rpart
 #' @importFrom tree tree
-#' @importFrom stats na.exclude
+#' @importFrom stats na.exclude binomial
 #' @importFrom colorspace diverge_hsv
 #' @export
 
@@ -37,6 +41,7 @@ CART <- function(formula,
                  output = "Sankey",
                  missing = "Use partial data",
                  method = "recursive.partition",
+                 algorithm = "tree",
                  auxiliary.data = NULL,
                  ...)
 {
@@ -48,25 +53,68 @@ CART <- function(formula,
        attr(subset, "description") <- subset.description
     weights <- eval(substitute(weights), data, parent.frame())
     data <- GetData(.formula, data, auxiliary.data)
-    data <- convertBinaryVariables(data)
     if (method == "model.frame")
         return(data)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
-    if (is.null(weights))
-        result <- tree(formula, data = estimation.data, model = TRUE, ...)
-    else
+
+    if (algorithm == "tree")
     {
-        weights <- CalibrateWeight(processed.data$weights)
-        assign(".weight.1232312", weights, envir=.GlobalEnv)
-        assign(".estimation.data", estimation.data, envir=.GlobalEnv)
-        result <- tree(formula, data = .estimation.data, weights = .weight.1232312, model = TRUE, ...)
-        remove(".weight.1232312",  envir=.GlobalEnv)
-        remove(".estimation.data", envir=.GlobalEnv)
+        if (is.null(weights))
+            result <- tree(formula, data = estimation.data, model = TRUE, ...)
+        else
+        {
+            weights <- CalibrateWeight(processed.data$weights)
+            assign(".weight.1232312", weights, envir=.GlobalEnv)
+            result <- tree(formula, data = estimation.data, weights = .weight.1232312, model = TRUE, ...)
+            remove(".weight.1232312",  envir=.GlobalEnv)
+        }
+        result$predicted <- predict(result, newdata = data, type = "tree", na.action = na.exclude)
     }
-    result$predicted <- predict(result, newdata = data, type = "tree", na.action = na.exclude)
+    else if (algorithm == "rpart")
+    {
+        if (is.null(weights))
+            result <- rpart(formula, data = estimation.data, model = TRUE, ...)
+        else
+        {
+            weights <- CalibrateWeight(processed.data$weights)
+            assign(".weight.1232312", weights, envir=.GlobalEnv)
+            result <- rpart(formula, data = estimation.data, weights = .weight.1232312, model = TRUE, ...)
+            remove(".weight.1232312",  envir=.GlobalEnv)
+        }
+        result$predicted <- predict(result, newdata = data, na.action = na.exclude)
+    }
+    else if (algorithm == "party")
+    {
+        outcome.is.factor <- is.factor(estimation.data[[OutcomeName(formula)]])
+        if (is.null(weights))
+        {
+            if (outcome.is.factor)
+                result <- glmtree(formula, data = estimation.data, na.action = na.exclude,
+                                  family = binomial, inner = "estfun", terminal = "estfun")
+            else
+                result <- lmtree(formula, data = estimation.data, na.action = na.exclude)
+        }
+        else
+        {
+            weights <- CalibrateWeight(processed.data$weights)
+            assign(".weight.1232312", weights, envir=.GlobalEnv)
+            if (outcome.is.factor)
+                result <- glmtree(formula, data = estimation.data, weights = .weight.1232312,
+                                  na.action = na.exclude, family = binomial, inner = "estfun",
+                                  terminal = "estfun")
+            else
+                result <- lmtree(formula, data = estimation.data, weights = .weight.1232312,
+                                 na.action = na.exclude)
+            remove(".weight.1232312",  envir=.GlobalEnv)
+        }
+    }
+    else
+        stop(paste("Unhandled algorithm:", algorithm))
+
     class(result) <- append("CART", class(result))
+    result$algorithm <- algorithm
     result$output <- output
     return(result)
 }
@@ -74,7 +122,10 @@ CART <- function(formula,
 #' \code{treeFrameToList} Converts a \code{\link{tree}} into a format usable in
 #' a sankeytree.
 #'
-#' @param tree The tree to convert.
+#' @param frame The tree frame.
+#' @param xlevels Levels of depedent variables that are factors.
+#' @param model Data used by the model.
+#' @param assigned The nodes that the cases have been assigned.
 #' @param max.tooltip.length The maximum length of the tooltip (determines the
 #'   scale of the tree).
 #' @param numeric.distribution Outputs additional diagnostics in the tooltip.
@@ -93,19 +144,14 @@ CART <- function(formula,
 #' @importFrom colorspace diverge_hsv
 #' @importFrom grDevices rgb rgb2hsv col2rgb hsv
 #'
-treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution = TRUE,
-                            custom.color = "default", num.color.div = 101, const.bin.size = TRUE)
+treeFrameToList <- function(frame, xlevels, model, assigned, max.tooltip.length = 150,
+                            numeric.distribution = TRUE, custom.color = "default", num.color.div = 101,
+                            const.bin.size = TRUE)
 {
-    # Creating the names of a node from the frame.
-    frame <- tree$frame
-    attri <- attributes(tree)
-    model <- tree$model
-    assigned <- tree$where
     .terminalNode <- function(i) frame$var[i] == frame$var[nrow(frame)]
 
-    tree.hash <- getNodeHash(attri)
+    tree.hash <- getNodeHash(xlevels)
     categoryLegend <- NULL
-    xlevels <- attri$xlevels
     xlevels.fac <- xlevels[!sapply(xlevels, is.null)]
     if (length(xlevels.fac) != 0) {
         hash.l = hash::values(tree.hash[[1]])
@@ -119,10 +165,10 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
     }
 
     #.trim = function(string) ifelse(nchar(string) >  max.tooltip.length, paste(0,strtrim(string, max.tooltip.length),"..."), string)
-    nms = names(tree$where)
-    outcome.variable = tree$model[,1]
+    nms = names(assigned)
+    outcome.variable = model[,1]
     outcome.is.factor = is.factor(outcome.variable)
-    outcome.name = names(tree$model)[[1]]
+    outcome.name = names(model)[[1]]
 
     .getQColors <- function() {
         qColors <- c(rgb(237, 125, 49, maxColorValue = 255), # orange
@@ -366,11 +412,10 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
         variable.name <- frame$var[i.parent]
         node.names <- frame$splits[i.parent,]
         node.name <- ifelse(node %% 2 == 0, node.names[1], node.names[2])
-        is.binary <- is.logical(model[[variable.name]])
-
-        if (is.binary && grepl("<0.5", node.name))
+        is.binary <- isBinary(model[[variable.name]])
+        if (is.binary && grepl("<", node.name))
             node.name <- paste("Not", variable.name)
-        else if (is.binary && grepl(">0.5", node.name))
+        else if (is.binary && grepl(">", node.name))
             node.name <- variable.name
         else if (grepl("[<>]", node.name))
             node.name <- paste(variable.name, node.name)
@@ -420,7 +465,7 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
         }
         result
     }
-    # Creating the recrusive list.
+    # Creating the recursive list.
     nodes <- as.numeric(dimnames(frame)[[1]])
     tree.list <- .constructNodes(1, nodes, frame, tree.hash, model)
 #     if (custom.color)
@@ -449,9 +494,8 @@ treeFrameToList <- function(tree, max.tooltip.length = 150, numeric.distribution
 
 # This function shortens categories to an abbreviation by spliting strings
 # and then generates hash tables to facilitate uniqueness checking and searching, etc.
-getNodeHash <- function(tree.attri)
+getNodeHash <- function(xlevels)
 {
-    xlevels <- tree.attri$xlevels
     xlevels.fac <- xlevels[!sapply(xlevels, is.null)] # strip null
     if (length(xlevels.fac) == 0)
         return(NULL)
@@ -465,10 +509,10 @@ getNodeHash <- function(tree.attri)
     xlevels.hash = c()
     for(node.texts in xlevels.fac) {
         # this approach will fail if more than 26 levels
-        h = hash(keys = letters[1:length(node.texts)],values = node.texts)
+        h = hash(keys = letters[1:length(node.texts)], values = node.texts)
         xlevels.hash = c(xlevels.hash, h)
     }
-    result = list(features.hash,xlevels.hash)
+    result = list(features.hash, xlevels.hash)
 }
 
 getShortenedLevels <- function(lvls)
@@ -516,20 +560,15 @@ getShortenedLevels <- function(lvls)
     node.texts
 }
 
-# Converts numeric variables that take only values 0 and 1 to logical.
-convertBinaryVariables <- function(data)
+isBinary <- function(vec)
 {
-    for (nms in names(data))
+    if (is.numeric(vec))
     {
-        d <- data[[nms]]
-        if (is.numeric(d))
-        {
-            u <- sort(unique(d))
-            if (length(u) == 2 && all(u == 0:1))
-                data[[nms]] <- as.logical(d)
-        }
+        u <- sort(unique(vec))
+        length(u) == 2 && all(u == 0:1)
     }
-    data
+    else
+        FALSE
 }
 
 #' @importFrom stats predict
@@ -545,22 +584,60 @@ predict.CART <- function(object, ...)
 #' @export
 print.CART <- function(x, ...)
 {
-    if (nrow(x$frame) == 1)
+    if (x$algorithm != "tree" && x$algorithm != "rpart" && x$algorithm != "party")
+        stop(paste("Algorithm not handled:", x$algorithm))
+
+    if ((x$algorithm == "tree" && nrow(x$frame) == 1) ||
+        (x$algorithm == "rpart" && nrow(x$frame) == 1) ||
+        (x$algorithm == "party" && is.null(x$node$kids)))
         stop("Output tree has one node and no splits. Change the inputs to produce a useful tree.")
 
     if (x$output == "Sankey")
     {
-        tree.list <- treeFrameToList(x, custom.color = "default")
+        tree.list <- if (x$algorithm == "tree")
+            treeFrameToList(x$frame, attr(x, "xlevels"), x$model, x$where)
+        else if (x$algorithm == "rpart")
+        {
+            frame <- rPartToTreeFrame(x)
+            treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where)
+        }
+        else if (x$algorithm == "party")
+        {
+            frame <- partyToTreeFrame(x)
+            treeFrameToList(frame, getXLevels(x), x$data, x$fitted[[1]])
+        }
         plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100, numeric.distribution = TRUE,
-                        tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
+                          tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
         print(plt)
     }
     else if (x$output == "Tree")
-        plot(convertTreeToParty(x), ip_args = list(id = FALSE), tp_args = list(id = FALSE, height = 3))
+    {
+        prty <- if (x$algorithm == "tree")
+            convertTreeFrameToParty(x$frame, attr(x, "xlevels"), x$model, x$terms)
+        else if (x$algorithm == "rpart")
+        {
+            frame <- rPartToTreeFrame(x)
+            convertTreeFrameToParty(frame, attr(x, "xlevels"), x$model, x$terms)
+        }
+        else if (x$algorithm == "party")
+            modifyPartyForOutput(x)
+
+        plot(prty, ip_args = list(id = FALSE), tp_args = list(id = FALSE, height = 3))
+    }
     else if (x$output == "Text")
     {
-        class(x) <- "tree"
-        print(x)
+        if (x$algorithm == "tree")
+        {
+            class(x) <- "tree"
+            print(x)
+        }
+        else if (x$algorithm == "rpart")
+        {
+            class(x) <- "rpart"
+            print(x)
+        }
+        else if (x$algorithm == "party")
+            print(x$node)
     }
     else
         stop(paste("Unhandled output: ", x$output))

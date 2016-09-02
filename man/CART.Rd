@@ -6,7 +6,8 @@
 \usage{
 CART(formula, data = NULL, subset = NULL, weights = NULL,
   output = "Sankey", missing = "Use partial data",
-  method = "recursive.partition", auxiliary.data = NULL, ...)
+  method = "recursive.partition", algorithm = "tree",
+  auxiliary.data = NULL, ...)
 }
 \arguments{
 \item{formula}{A formula expression. The left-hand-side (response) should
@@ -32,6 +33,8 @@ the name of a variable in \code{data}. It may not be an expression.}
 \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.}
 
 \item{method}{A character string giving the method to use. The only other useful value is "model.frame".}
+
+\item{algorithm}{The algorithm used to generate the tree. Takes the values "tree", "rpart" and "party".}
 
 \item{auxiliary.data}{A data frame containing additional variables to be used in imputation.}
 
