@@ -112,9 +112,8 @@ CART <- function(formula,
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
 
-        # Fix for "Cannot serialize result: 'names' attribute [5] must be the same length as the vector [1]"
-        if (is.null(result$node$kids))
-            result$node <- list(kids = NULL)
+        result$frame <- partyToTreeFrame(result)
+        result$node <- NULL
 
         class(result) <- "CART"
     }
@@ -609,10 +608,7 @@ print.CART <- function(x, ...)
             treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where)
         }
         else if (x$algorithm == "party")
-        {
-            frame <- partyToTreeFrame(x)
-            treeFrameToList(frame, getXLevels(x), x$data, x$fitted[[1]])
-        }
+            treeFrameToList(x$frame, getXLevels(x), x$data, x$fitted[[1]])
         plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100, numeric.distribution = TRUE,
                           tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
         print(plt)

@@ -52,8 +52,7 @@ convertTreeFrameToParty <- function(frame, xlevels, model, terms)
 
 modifyPartyForOutput <- function(obj)
 {
-    frame <- partyToTreeFrame(obj)
-    convertTreeFrameToParty(frame, getXLevels(obj), obj$data, obj$terms)
+    convertTreeFrameToParty(obj$frame, getXLevels(obj), obj$data, obj$terms)
 }
 
 parseNumericSplitsText <- function(t)
