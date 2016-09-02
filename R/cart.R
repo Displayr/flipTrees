@@ -71,6 +71,7 @@ CART <- function(formula,
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
         result$predicted <- predict(result, newdata = data, type = "tree", na.action = na.exclude)
+        class(result) <- append("CART", class(result))
     }
     else if (algorithm == "rpart")
     {
@@ -84,6 +85,7 @@ CART <- function(formula,
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
         result$predicted <- predict(result, newdata = data, na.action = na.exclude)
+        class(result) <- append("CART", class(result))
     }
     else if (algorithm == "party")
     {
@@ -109,11 +111,11 @@ CART <- function(formula,
                                  na.action = na.exclude)
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
+        class(result) <- "CART"
     }
     else
         stop(paste("Unhandled algorithm:", algorithm))
 
-    class(result) <- append("CART", class(result))
     result$algorithm <- algorithm
     result$output <- output
     return(result)
