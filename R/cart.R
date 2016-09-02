@@ -114,7 +114,7 @@ CART <- function(formula,
 
         # Fix for "Cannot serialize result: 'names' attribute [5] must be the same length as the vector [1]"
         if (is.null(result$node$kids))
-            names(result$node) <- "id"
+            result$node <- list(kids = NULL)
 
         class(result) <- "CART"
     }
