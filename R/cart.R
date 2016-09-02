@@ -113,6 +113,8 @@ CART <- function(formula,
         }
 
         result$frame <- partyToTreeFrame(result)
+
+        result$nodetext <- paste(capture.output(result$node), collapse = "\n")
         result$node <- NULL
 
         class(result) <- "CART"
@@ -593,9 +595,7 @@ print.CART <- function(x, ...)
     if (x$algorithm != "tree" && x$algorithm != "rpart" && x$algorithm != "party")
         stop(paste("Algorithm not handled:", x$algorithm))
 
-    if ((x$algorithm == "tree" && nrow(x$frame) == 1) ||
-        (x$algorithm == "rpart" && nrow(x$frame) == 1) ||
-        (x$algorithm == "party" && is.null(x$node$kids)))
+    if (nrow(x$frame) == 1)
         stop("Output tree has one node and no splits. Change the inputs to produce a useful tree.")
 
     if (x$output == "Sankey")
@@ -640,7 +640,7 @@ print.CART <- function(x, ...)
             print(x)
         }
         else if (x$algorithm == "party")
-            print(x$node)
+            cat(x$nodetext)
     }
     else
         stop(paste("Unhandled output: ", x$output))
