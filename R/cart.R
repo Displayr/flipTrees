@@ -417,11 +417,10 @@ treeFrameToList <- function(frame, xlevels, model, assigned, max.tooltip.length 
             return(root.name)
         features.hash <- tree.hash[[1]]
         xlevels.hash <- tree.hash[[2]]
-        variable.name <- frame$var[i.parent]
+        variable.name <- as.character(frame$var[i.parent])
         node.names <- frame$splits[i.parent,]
         node.name <- ifelse(node %% 2 == 0, node.names[1], node.names[2])
         is.binary <- isBinary(model[[variable.name]])
-        print(is.binary)
         if (is.binary && grepl("<", node.name))
             node.name <- paste("Not", variable.name)
         else if (is.binary && grepl(">", node.name))
@@ -574,7 +573,6 @@ isBinary <- function(vec)
     if (is.numeric(vec))
     {
         u <- sort(unique(vec))
-        print(u)
         length(u) == 2 && all(u == 0:1)
     }
     else
