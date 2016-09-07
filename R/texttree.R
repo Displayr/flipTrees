@@ -22,7 +22,7 @@ print.textPredictiveTree <- function(x, ...){
 #' @param weights An option vector containing sampling weights for each row of \code{data}.
 #' @param subset An option vector describing the subset of rows from \code{data} that are to be used to generate the tree.
 #' @inheritParams CART
-#' @importFrom flipData ErrorIfMissingDataFound
+#' @importFrom flipData ErrorIfMissingDataFound RemoveCasesWithAllNA RemoveCasesWithAnyNA
 #' @export
 CheckDataForTextTree <- function(data, weights = NULL, subset = NULL, missing = "Exclude cases with missing data")
 {
@@ -46,9 +46,9 @@ CheckDataForTextTree <- function(data, weights = NULL, subset = NULL, missing = 
     } else if (missing == "Imputation") {
         num.valid <- nrow(subset.data)
     } else if (missing == "Use partial data (pairwise correlations)" || missing == "Use partial data") {
-        num.valid <- nrow(flipData:::removeCasesWithAllNA(subset.data))
+        num.valid <- nrow(RemoveCasesWithAllNA(subset.data))
     } else if (missing == "Exclude cases with missing data") {
-        num.valid <- nrow(flipData:::removeCasesWithAnyNA(subset.data))
+        num.valid <- nrow(RemoveCasesWithAnyNA(subset.data))
     }
 
     if (num.valid < ncol(data))
