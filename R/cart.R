@@ -111,15 +111,18 @@ CART <- function(formula,
         }
 
         # Un-remove levels with no cases
-        outcome.name <- OutcomeName(formula)
-        outcome.var <- result$data[[outcome.name]]
-        lvls <- levels(outcome.var)
-        correct.lvls <- levels(data[[outcome.name]])
-        n.lvls <- length(correct.lvls)
-        num <- as.numeric(outcome.var)
-        for (l in lvls)
-            num[outcome.var == l] <- (1:n.lvls)[correct.lvls == l]
-        result$data[[outcome.name]] <- factor(num, 1:n.lvls, labels = correct.lvls)
+        if (outcome.is.factor)
+        {
+            outcome.name <- OutcomeName(formula)
+            outcome.var <- result$data[[outcome.name]]
+            lvls <- levels(outcome.var)
+            correct.lvls <- levels(data[[outcome.name]])
+            n.lvls <- length(correct.lvls)
+            num <- as.numeric(outcome.var)
+            for (l in lvls)
+                num[outcome.var == l] <- (1:n.lvls)[correct.lvls == l]
+            result$data[[outcome.name]] <- factor(num, 1:n.lvls, labels = correct.lvls)
+        }
 
         result$frame <- partyToTreeFrame(result)
 
