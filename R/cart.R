@@ -110,7 +110,24 @@ CART <- function(formula,
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
 
+        # Un-remove levels with no cases
+        outcome.name <- OutcomeName(formula)
+        outcome.var <- result$data[[outcome.name]]
+        lvls <- levels(outcome.var)
+        correct.lvls <- levels(data[[outcome.name]])
+        n.lvls <- length(correct.lvls)
+        num <- as.numeric(outcome.var)
+        for (l in lvls)
+            num[outcome.var == l] <- (1:n.lvls)[correct.lvls == l]
+        result$data[[outcome.name]] <- factor(num, 1:n.lvls, labels = correct.lvls)
+
         result$frame <- partyToTreeFrame(result)
+
+        nds <- predict(result, newdata = data, type = "node")
+        result$predicted <- result$frame$yval[nds]
+
+        if (outcome.is.factor)
+            result$probabilities <- result$frame$yprob[nds, ]
 
         result$nodetext <- paste(capture.output(result$node), collapse = "\n")
         result$node <- NULL
@@ -119,6 +136,7 @@ CART <- function(formula,
     }
     else
         stop(paste("Unhandled algorithm:", algorithm))
+    result$input.data <- data
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
     result$output <- output
@@ -581,12 +599,26 @@ isBinary <- function(vec)
 #' @export
 predict.CART <- function(object, ...)
 {
-    if(!inherits(object, "tree"))
-        stop("Predictions are currently only possible from the 'tree' method.")
-    if(object$outcome.numeric)
-        tree:::predict.tree(object, type = "vector", newdata = object$model, na.action = na.exclude)
+    if (object$algorithm == "tree")
+    {
+        if(object$outcome.numeric)
+            tree:::predict.tree(object, type = "vector", newdata = object$input.data)
+        else
+            tree:::predict.tree(object, type = "class", newdata = object$input.data)
+    }
+    else if (object$algorithm == "rpart")
+    {
+        if(object$outcome.numeric)
+            rpart:::predict.rpart(object, type = "vector", newdata = object$input.data, na.action = na.pass)
+        else
+            rpart:::predict.rpart(object, type = "class", newdata = object$input.data, na.action = na.pass)
+    }
+    else if (object$algorithm == "party")
+    {
+        object$predicted
+    }
     else
-        tree:::predict.tree(object, type = "class", newdata = object$model, na.action = na.exclude)
+        stop(paste("Algorithm not handled:", object$algorithm))
 }
 
 
@@ -595,9 +627,19 @@ Probabilities.CART <- function(object, ...)
 {
     if(object$outcome.numeric)
         stop("Probabilities not available for numeric dependent variables.")
-    if(!inherits(object, "tree"))
-        stop("Predictions are currently only possible from the 'tree' method.")
-    tree:::predict.tree(object, type = "vector", newdata = object$model, na.action = na.exclude)
+    if (object$algorithm == "tree")
+        tree:::predict.tree(object, type = "vector", newdata = object$input.data)
+    else if (object$algorithm == "rpart")
+    {
+        m <- rpart:::predict.rpart(object, type = "matrix", newdata = object$input.data, na.action = na.pass)
+        n.col <- ncol(m)
+        n.levels <- length(levels(object$input.data[[OutcomeName(object$terms)]]))
+        m[, (n.col - n.levels + 1):n.col]
+    }
+    else if (object$algorithm == "party")
+        object$probabilities
+    else
+        stop(paste("Algorithm not handled:", object$algorithm))
 }
 
 #' @importFrom graphics plot
