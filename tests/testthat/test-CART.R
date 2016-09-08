@@ -7,6 +7,7 @@ data(bank, package = "flipExampleData")
 
 
 z = CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100)
+z
 
 # Reading in the libraries so that their outputs do not polute the test results.
 library(mice)
