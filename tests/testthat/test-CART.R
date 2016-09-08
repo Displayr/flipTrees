@@ -4,6 +4,10 @@ data("spam7", package = "DAAG")
 spam.sample <- spam7[sample(seq(1,4601), 500, replace=FALSE), ]
 data(colas, package = "flipExampleData")
 data(bank, package = "flipExampleData")
+
+
+z = CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100)
+
 # Reading in the libraries so that their outputs do not polute the test results.
 library(mice)
 library(hot.deck)
