@@ -5,6 +5,20 @@ spam.sample <- spam7[sample(seq(1,4601), 500, replace=FALSE), ]
 data(colas, package = "flipExampleData")
 data(bank, package = "flipExampleData")
 
+test_that("saving variables",
+          {
+
+                z = CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100)
+                expect_error(predict(z), NA)
+                expect_error(flipData::Probabilities(z))
+
+                bank$fOverall <- factor(bank$Overall)
+                z = CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100)
+                expect_error(predict(z), NA)
+                expect_error(flipData::Probabilities(z), NA)
+          }
+)
+
 # Reading in the libraries so that their outputs do not polute the test results.
 library(mice)
 library(hot.deck)

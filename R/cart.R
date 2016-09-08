@@ -58,6 +58,7 @@ CART <- function(formula,
     processed.data <- EstimationData(formula, data, subset, weights, missing)
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
+    outcome.is.factor <- is.factor(estimation.data[[OutcomeName(formula)]])
 
     if (algorithm == "tree")
     {
@@ -70,7 +71,6 @@ CART <- function(formula,
             result <- tree(formula, data = estimation.data, weights = .weight.1232312, model = TRUE, ...)
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
-        result$predicted <- predict(result, newdata = data, type = "tree", na.action = na.exclude)
         class(result) <- append("CART", class(result))
     }
     else if (algorithm == "rpart")
@@ -84,12 +84,10 @@ CART <- function(formula,
             result <- rpart(formula, data = estimation.data, weights = .weight.1232312, model = TRUE, ...)
             remove(".weight.1232312",  envir=.GlobalEnv)
         }
-        result$predicted <- predict(result, newdata = data, na.action = na.exclude)
         class(result) <- append("CART", class(result))
     }
     else if (algorithm == "party")
     {
-        outcome.is.factor <- is.factor(estimation.data[[OutcomeName(formula)]])
         if (is.null(weights))
         {
             if (outcome.is.factor)
@@ -121,7 +119,7 @@ CART <- function(formula,
     }
     else
         stop(paste("Unhandled algorithm:", algorithm))
-
+    result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
     result$output <- output
     return(result)
@@ -579,12 +577,27 @@ isBinary <- function(vec)
         FALSE
 }
 
-#' @importFrom stats predict
-#' @importFrom graphics text
+
 #' @export
 predict.CART <- function(object, ...)
 {
-    object$predicted
+    if(!inherits(object, "tree"))
+        stop("Predictions are currently only possible from the 'tree' method.")
+    if(object$outcome.numeric)
+        tree:::predict.tree(object, type = "vector", newdata = object$model, na.action = na.exclude)
+    else
+        tree:::predict.tree(object, type = "class", newdata = object$model, na.action = na.exclude)
+}
+
+
+#' @export
+Probabilities.CART <- function(object, ...)
+{
+    if(object$outcome.numeric)
+        stop("Probabilities not available for numeric dependent variables.")
+    if(!inherits(object, "tree"))
+        stop("Predictions are currently only possible from the 'tree' method.")
+    tree:::predict.tree(object, type = "vector", newdata = object$model, na.action = na.exclude)
 }
 
 #' @importFrom graphics plot
