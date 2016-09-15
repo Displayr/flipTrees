@@ -9,16 +9,34 @@ for (algo in c("tree", "rpart", "party"))
     test_that("saving variables",
               {
 
-                    z = CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = algo)
+                    z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = algo)
                     expect_error(predict(z), NA)
                     expect_error(flipData::Probabilities(z))
 
                     bank$fOverall <- factor(bank$Overall)
-                    z = CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = algo)
+                    z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = algo)
                     expect_error(predict(z), NA)
                     expect_error(flipData::Probabilities(z), NA)
               }
     )
+
+z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "tree")
+test_that("tree prediction",
+    {
+        expect_equal(unname(predict(z)[1]), 4.044871794871795)
+    })
+
+z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "rpart")
+test_that("rpart prediction",
+    {
+        expect_equal(unname(predict(z)[1]), 4.258064516129032)
+    })
+
+z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "party")
+test_that("party prediction",
+    {
+        expect_equal(unname(predict(z)[1]), 3.977272727272728)
+    })
 
 # Reading in the libraries so that their outputs do not polute the test results.
 library(mice)
