@@ -4,6 +4,7 @@ data("spam7", package = "DAAG")
 spam.sample <- spam7[sample(seq(1,4601), 500, replace=FALSE), ]
 data(colas, package = "flipExampleData")
 data(bank, package = "flipExampleData")
+bank$fOverall <- factor(bank$Overall)
 
 for (algo in c("tree", "rpart", "party"))
     test_that("saving variables",
@@ -13,7 +14,6 @@ for (algo in c("tree", "rpart", "party"))
                     expect_error(predict(z), NA)
                     expect_error(flipData::Probabilities(z))
 
-                    bank$fOverall <- factor(bank$Overall)
                     z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = algo)
                     expect_error(predict(z), NA)
                     expect_error(flipData::Probabilities(z), NA)
@@ -25,17 +25,30 @@ test_that("tree prediction",
     {
         expect_equal(unname(predict(z)[1]), 4.044871794871795)
     })
-
 z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "rpart")
 test_that("rpart prediction",
     {
         expect_equal(unname(predict(z)[1]), 4.258064516129032)
     })
-
 z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "party")
 test_that("party prediction",
     {
         expect_equal(unname(predict(z)[1]), 3.977272727272728)
+    })
+z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "tree")
+test_that("tree Probabilities",
+    {
+        expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.4551282051282051)
+    })
+z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "rpart")
+test_that("tree Probabilities",
+    {
+        expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2444444444444445)
+    })
+z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "party")
+test_that("tree Probabilities",
+    {
+        expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2916666666666667)
     })
 
 # Reading in the libraries so that their outputs do not polute the test results.
