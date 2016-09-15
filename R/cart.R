@@ -636,9 +636,8 @@ Probabilities.CART <- function(object, ...)
     else if (object$algorithm == "rpart")
     {
         m <- rpart:::predict.rpart(object, type = "matrix", newdata = object$input.data, na.action = na.pass)
-        n.col <- ncol(m)
         lvls <- levels(object$input.data[[OutcomeName(object$terms)]])
-        prob <- m[, (n.col - length(lvls) + 1):n.col]
+        prob <- m[, (length(lvls) + 2):(2 * length(lvls) + 1)]
         colnames(prob) <- lvls
         prob
     }
