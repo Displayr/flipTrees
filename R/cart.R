@@ -30,8 +30,9 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @importFrom partykit glmtree lmtree mob
 #' @importFrom rpart rpart
 #' @importFrom tree tree
-#' @importFrom stats na.exclude binomial
+#' @importFrom stats na.exclude binomial predict
 #' @importFrom colorspace diverge_hsv
+#' @importFrom utils capture.output
 #' @export
 
 CART <- function(formula,
@@ -598,7 +599,7 @@ isBinary <- function(vec)
         FALSE
 }
 
-
+#' @importFrom stats na.pass
 #' @export
 predict.CART <- function(object, ...)
 {
@@ -624,7 +625,7 @@ predict.CART <- function(object, ...)
         stop(paste("Algorithm not handled:", object$algorithm))
 }
 
-
+#' @importFrom stats na.pass
 #' @export
 Probabilities.CART <- function(object, ...)
 {
@@ -636,8 +637,10 @@ Probabilities.CART <- function(object, ...)
     {
         m <- rpart:::predict.rpart(object, type = "matrix", newdata = object$input.data, na.action = na.pass)
         n.col <- ncol(m)
-        n.levels <- length(levels(object$input.data[[OutcomeName(object$terms)]]))
-        m[, (n.col - n.levels + 1):n.col]
+        lvls <- levels(object$input.data[[OutcomeName(object$terms)]])
+        prob <- m[, (n.col - length(lvls) + 1):n.col]
+        colnames(prob) <- lvls
+        prob
     }
     else if (object$algorithm == "party")
         object$probabilities
