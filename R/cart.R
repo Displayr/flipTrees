@@ -148,11 +148,8 @@ CART <- function(formula,
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
     result$output <- output
-    labels <- c("OverAll", "Fee es")
-    names(labels) <- c("Overall", "Feesf")
     if (show.labels)
-        result$labels <- labels
-        # result$labels <- Labels(data)
+        result$labels <- Labels(data)
     return(result)
 }
 
