@@ -1,6 +1,6 @@
 #' @importFrom partykit party
 #' @importFrom flipU OutcomeName
-convertTreeFrameToParty <- function(frame, xlevels, model, terms)
+treeFrameToParty <- function(frame, xlevels, model, terms, labels)
 {
     df <- data.frame()
 
@@ -38,21 +38,18 @@ convertTreeFrameToParty <- function(frame, xlevels, model, terms)
         else
             stop(paste0("Unhandled variable class: ", class(v)))
     }
-    colnames(df) <- sapply(var.names, truncateLabel)
+    colnames(df) <- sapply(var.names, function(name) {
+        truncateLabel(if (!is.null(labels)) unname(labels[name]) else name)
+    })
 
     yval <- frame$yval
     if (is.factor(yval))
         levels(yval) <- getShortenedLevels(levels(yval))
 
-    outcome.name <- truncateLabel(OutcomeName(terms), 10)
+    outcome.name <- truncateLabel(if (!is.null(labels)) unname(labels[OutcomeName(terms)]) else OutcomeName(terms), 10)
 
     nd <- getPartyNodes(1L, 1L, not.leaf, yval, numeric.breaks, numeric.breaks.reversed, outcome.name)
     party(nd$node, df)
-}
-
-modifyPartyForOutput <- function(obj)
-{
-    convertTreeFrameToParty(obj$frame, getXLevels(obj), obj$data, obj$terms)
 }
 
 parseNumericSplitsText <- function(t)

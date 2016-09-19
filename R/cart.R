@@ -20,12 +20,15 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @param method A character string giving the method to use. The only other useful value is "model.frame".
 #' @param algorithm The algorithm used to generate the tree. Takes the values "tree", "rpart" and "party".
 #' @param auxiliary.data A data frame containing additional variables to be used in imputation.
+#' @param show.labels Shows the variable labels, as opposed to the names, in the outputs, where a
+#' variables label is an attribute (e.g., attr(foo, "label")).
 #' @param ... Additional arguments that are passed to  \code{\link{tree}}
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
 #'
 #' @details Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
 #' @importFrom flipData GetData CalibrateWeight
 #' @importFrom flipData EstimationData
+#' @importFrom flipFormat Labels
 #' @importFrom flipU OutcomeName
 #' @importFrom partykit glmtree lmtree mob
 #' @importFrom rpart rpart
@@ -44,6 +47,7 @@ CART <- function(formula,
                  method = "recursive.partition",
                  algorithm = "tree",
                  auxiliary.data = NULL,
+                 show.labels = FALSE,
                  ...)
 {
     cl <- match.call()
@@ -144,6 +148,11 @@ CART <- function(formula,
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
     result$output <- output
+    labels <- c("OverAll", "Fee es")
+    names(labels) <- c("Overall", "Feesf")
+    if (show.labels)
+        result$labels <- labels
+        # result$labels <- Labels(data)
     return(result)
 }
 
@@ -154,6 +163,7 @@ CART <- function(formula,
 #' @param xlevels Levels of depedent variables that are factors.
 #' @param model Data used by the model.
 #' @param assigned The nodes that the cases have been assigned.
+#' @param labels A vector of variable labels, named by the variable names.
 #' @param max.tooltip.length The maximum length of the tooltip (determines the
 #'   scale of the tree).
 #' @param numeric.distribution Outputs additional diagnostics in the tooltip.
@@ -172,7 +182,7 @@ CART <- function(formula,
 #' @importFrom colorspace diverge_hsv
 #' @importFrom grDevices rgb rgb2hsv col2rgb hsv
 #'
-treeFrameToList <- function(frame, xlevels, model, assigned, max.tooltip.length = 150,
+treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip.length = 150,
                             numeric.distribution = TRUE, custom.color = "default", num.color.div = 101,
                             const.bin.size = TRUE)
 {
@@ -430,7 +440,7 @@ treeFrameToList <- function(frame, xlevels, model, assigned, max.tooltip.length 
     node.descriptions = paste("Description: ", node.descriptions)
     node.tooltips = paste(node.tooltips, node.descriptions, sep = "<br>")
 
-    root.name <- outcome.name
+    root.name <- if (!is.null(labels)) unname(labels[outcome.name]) else outcome.name
     .constructNodeName <- function(node, i, i.parent, frame, tree.hash, model)
     {
         if (i == 1)
@@ -438,15 +448,16 @@ treeFrameToList <- function(frame, xlevels, model, assigned, max.tooltip.length 
         features.hash <- tree.hash[[1]]
         xlevels.hash <- tree.hash[[2]]
         variable.name <- as.character(frame$var[i.parent])
+        displayed.name <- if (!is.null(labels)) unname(labels[variable.name]) else variable.name
         node.names <- frame$splits[i.parent,]
         node.name <- ifelse(node %% 2 == 0, node.names[1], node.names[2])
         is.binary <- isBinary(model[[variable.name]])
         if (is.binary && grepl("<", node.name))
-            node.name <- paste("Not", variable.name)
+            node.name <- paste("Not", displayed.name)
         else if (is.binary && grepl(">", node.name))
-            node.name <- variable.name
+            node.name <- displayed.name
         else if (grepl("[<>]", node.name))
-            node.name <- paste(variable.name, node.name)
+            node.name <- paste(displayed.name, node.name)
         else
         {
             node.name <- sub(":", "", node.name)
@@ -459,7 +470,7 @@ treeFrameToList <- function(frame, xlevels, model, assigned, max.tooltip.length 
                 nd.txt[m] <- values(xlevels.hash[[feature.id]],keys = str)
             }
             node.name <- paste(nd.txt, collapse = " ")
-            node.name <- paste0(variable.name, ": ", node.name)
+            node.name <- paste0(displayed.name, ": ", node.name)
         }
         #         if (.terminalNode(i))
         #             node.name <- paste0(node.name, terminal.description[i])
@@ -599,6 +610,51 @@ isBinary <- function(vec)
         FALSE
 }
 
+textTreeWithLabels <- function(text, labels, model, algorithm)
+{
+    result <- text
+    if (algorithm == "tree")
+    {
+        if (!is.null(labels))
+            for (i in seq(labels))
+            {
+                name <- names(labels[i])
+                if (is.factor(model[[name]]))
+                    result <- gsub(paste0(") ", name, ":"), paste0(") ", unname(labels[i]), ":"), result)
+                else
+                    result <- gsub(paste0(") ", name, " "), paste0(") ", unname(labels[i]), " "), result)
+            }
+    }
+    else if (algorithm == "rpart")
+    {
+        if (!is.null(labels))
+            for (i in seq(labels))
+            {
+                name <- names(labels[i])
+                if (is.factor(model[[name]]))
+                 result <- gsub(paste0(") ", name, "="), paste0(") ", unname(labels[i]), "="), result)
+                else
+                {
+                    result <- gsub(paste0(") ", name, ">"), paste0(") ", unname(labels[i]), ">"), result)
+                    result <- gsub(paste0(") ", name, "<"), paste0(") ", unname(labels[i]), "<"), result)
+                }
+            }
+    }
+    else if (algorithm == "party")
+    {
+        for (i in seq(model))
+        {
+            name <- colnames(model)[i]
+            displayed.name <- if (!is.null(labels)) unname(labels[name]) else name
+            result <- gsub(paste0("] V", i, " "), paste0("] ", displayed.name, " "), result)
+        }
+    }
+    else
+        stop(paste("Algorithm not handled:", algorithm))
+
+    result
+}
+
 #' @importFrom stats na.pass
 #' @export
 predict.CART <- function(object, ...)
@@ -661,14 +717,14 @@ print.CART <- function(x, ...)
     if (x$output == "Sankey")
     {
         tree.list <- if (x$algorithm == "tree")
-            treeFrameToList(x$frame, attr(x, "xlevels"), x$model, x$where)
+            treeFrameToList(x$frame, attr(x, "xlevels"), x$model, x$where, x$labels)
         else if (x$algorithm == "rpart")
         {
             frame <- rPartToTreeFrame(x)
-            treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where)
+            treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where, x$labels)
         }
         else if (x$algorithm == "party")
-            treeFrameToList(x$frame, getXLevels(x), x$data, x$fitted[[1]])
+            treeFrameToList(x$frame, getXLevels(x), x$data, x$fitted[[1]], x$labels)
         plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100, numeric.distribution = TRUE,
                           tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
         print(plt)
@@ -676,14 +732,14 @@ print.CART <- function(x, ...)
     else if (x$output == "Tree")
     {
         prty <- if (x$algorithm == "tree")
-            convertTreeFrameToParty(x$frame, attr(x, "xlevels"), x$model, x$terms)
+            treeFrameToParty(x$frame, attr(x, "xlevels"), x$model, x$terms, x$labels)
         else if (x$algorithm == "rpart")
         {
             frame <- rPartToTreeFrame(x)
-            convertTreeFrameToParty(frame, attr(x, "xlevels"), x$model, x$terms)
+            treeFrameToParty(frame, attr(x, "xlevels"), x$model, x$terms, x$labels)
         }
         else if (x$algorithm == "party")
-            modifyPartyForOutput(x)
+            treeFrameToParty(x$frame, getXLevels(x), x$data, x$terms, x$labels)
 
         plot(prty, ip_args = list(id = FALSE), tp_args = list(id = FALSE, height = 3))
     }
@@ -692,15 +748,15 @@ print.CART <- function(x, ...)
         if (x$algorithm == "tree")
         {
             class(x) <- "tree"
-            print(x)
+            cat(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model, x$algorithm))
         }
         else if (x$algorithm == "rpart")
         {
             class(x) <- "rpart"
-            print(x)
+            cat(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model, x$algorithm))
         }
         else if (x$algorithm == "party")
-            cat(x$nodetext)
+            cat(textTreeWithLabels(x$nodetext, x$labels, x$data, x$algorithm))
     }
     else
         stop(paste("Unhandled output: ", x$output))
