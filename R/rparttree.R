@@ -4,6 +4,9 @@ rPartToTreeFrame <- function(obj)
     frame <- obj$frame
     n.nodes <- nrow(frame)
     splits <- matrix("", n.nodes, 2)
+    nms <- colnames(obj$splits)
+    index.i <- nms == "index"
+    ncat.i <- nms == "ncat"
     c <- 1
     for (i in 1:n.nodes)
     {
@@ -15,15 +18,14 @@ rPartToTreeFrame <- function(obj)
                 if (ncol(obj$csplit) > length(letters))
                     stop("There are too many levels in the factor to be represented by letters.")
                 lttrs <- letters[1:ncol(obj$csplit)]
-                levels.split <- obj$csplit[c, ]
+                levels.split <- obj$csplit[obj$splits[c, index.i], ]
                 splits[i, 1] <- paste0(":", paste(lttrs[levels.split == 1], collapse = ""))
                 splits[i, 2] <- paste0(":", paste(lttrs[levels.split == 3], collapse = ""))
             }
             else
             {
-                nms <- colnames(obj$splits)
-                break.val <- obj$splits[c, nms == "index"]
-                if (obj$splits[c, nms == "ncat"] < 0)
+                break.val <- obj$splits[c, index.i]
+                if (obj$splits[c, ncat.i] < 0)
                 {
                     splits[i, 1] <- paste0("<", break.val)
                     splits[i, 2] <- paste0(">", break.val)
