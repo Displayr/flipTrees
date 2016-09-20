@@ -43,9 +43,6 @@ treeFrameToParty <- function(frame, xlevels, model, terms, labels)
     })
 
     yval <- frame$yval
-    if (is.factor(yval))
-        levels(yval) <- getShortenedLevels(levels(yval))
-
     outcome.name <- truncateLabel(if (!is.null(labels)) unname(labels[OutcomeName(terms)]) else OutcomeName(terms), 10)
 
     nd <- getPartyNodes(1L, 1L, not.leaf, yval, numeric.breaks, numeric.breaks.reversed, outcome.name)
@@ -54,9 +51,9 @@ treeFrameToParty <- function(frame, xlevels, model, terms, labels)
 
 parseNumericSplitsText <- function(t)
 {
-    num <- as.numeric(substr(t, 2, nchar(t)))
+    num <- as.numeric(trimws(gsub("[<>=]", "", t)))
     if (is.na(num))
-        stop(paste("The following could not be parsed as numeric:", t))
+        stop(paste("The following could not be parsed:", t))
     num
 }
 
@@ -204,8 +201,8 @@ partyToTreeFrame <- function(obj)
         nd <- node.list[[i]]
         if (!is.null(nd$breaks))
         {
-            splits[i, 1] <- paste0("<" , nd$breaks)
-            splits[i, 2] <- paste0(">" , nd$breaks)
+            splits[i, 1] <- paste0(" <= " , nd$breaks)
+            splits[i, 2] <- paste0(" > " , nd$breaks)
         }
         else if (!is.null(nd$index))
         {

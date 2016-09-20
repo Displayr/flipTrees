@@ -7,7 +7,8 @@
 CART(formula, data = NULL, subset = NULL, weights = NULL,
   output = "Sankey", missing = "Use partial data",
   method = "recursive.partition", algorithm = "tree",
-  auxiliary.data = NULL, show.labels = FALSE, ...)
+  auxiliary.data = NULL, show.labels = FALSE,
+  factor.labels = "Abbreviated labels", ...)
 }
 \arguments{
 \item{formula}{A formula expression. The left-hand-side (response) should
@@ -40,6 +41,8 @@ the name of a variable in \code{data}. It may not be an expression.}
 
 \item{show.labels}{Shows the variable labels, as opposed to the names, in the outputs, where a
 variables label is an attribute (e.g., attr(foo, "label")).}
+
+\item{factor.labels}{How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.}
 
 \item{...}{Additional arguments that are passed to  \code{\link{tree}}
 and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev}
