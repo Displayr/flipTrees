@@ -99,7 +99,7 @@ getPartyNodes <- function(c, split.c, not.leaf, yval, numeric.breaks, numeric.br
         info <- if (is.numeric(yval))
             paste0(outcome.name, ":\n", FormatAsReal(yval[c]), "\n")
         else
-            paste0(outcome.name, ":\n", as.character(yval[c]), "\n")
+            paste0(outcome.name, ":\n", truncateLabel(as.character(yval[c])), "\n")
         node <- partynode(c, info = info)
         c <- c + 1L
         list(node = node, c = c, split.c = split.c)

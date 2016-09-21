@@ -22,7 +22,8 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @param auxiliary.data A data frame containing additional variables to be used in imputation.
 #' @param show.labels Shows the variable labels, as opposed to the names, in the outputs, where a
 #' variables label is an attribute (e.g., attr(foo, "label")).
-#' @param factor.labels How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
+#' @param predictor.level.treatment How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
+#' @param outcome.level.treatment How outcome factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
 #' @param ... Additional arguments that are passed to  \code{\link{tree}}
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
 #'
@@ -49,7 +50,8 @@ CART <- function(formula,
                  algorithm = "tree",
                  auxiliary.data = NULL,
                  show.labels = FALSE,
-                 factor.labels = "Abbreviated labels",
+                 predictor.level.treatment = "Abbreviated labels",
+                 outcome.level.treatment = "Full labels",
                  ...)
 {
     cl <- match.call()
@@ -63,7 +65,7 @@ CART <- function(formula,
     if (method == "model.frame")
         return(data)
     outcome.name <- OutcomeName(formula)
-    data <- shortenPredictorFactorLevels(data, outcome.name, factor.labels)
+    data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
@@ -222,16 +224,28 @@ getShortenedLevels <- function(lvls)
     node.texts
 }
 
-shortenPredictorFactorLevels <- function(data, outcome.name, label.treatment)
+shortenFactorLevels <- function(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
 {
     result <- data
     nms <- colnames(data)
     for (name in nms)
-        if (name != outcome.name && is.factor(data[[name]]))
-            if (label.treatment == "Abbreviated labels")
-                levels(result[[name]]) <- getShortenedLevels(levels(data[[name]]))
-            else if (label.treatment == "Letters")
-                levels(result[[name]]) <- letters[seq(levels(data[[name]]))]
+        if (is.factor(data[[name]]))
+        {
+            if (name == outcome.name)
+            {
+                if (outcome.level.treatment == "Abbreviated labels")
+                    levels(result[[name]]) <- getShortenedLevels(levels(data[[name]]))
+                else if (outcome.level.treatment == "Letters")
+                    levels(result[[name]]) <- letters[seq(levels(data[[name]]))]
+            }
+            else
+            {
+                if (predictor.level.treatment == "Abbreviated labels")
+                    levels(result[[name]]) <- getShortenedLevels(levels(data[[name]]))
+                else if (predictor.level.treatment == "Letters")
+                    levels(result[[name]]) <- letters[seq(levels(data[[name]]))]
+            }
+        }
     result
 }
 
