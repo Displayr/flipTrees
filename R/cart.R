@@ -294,10 +294,15 @@ textTreeWithLabels <- function(text, labels, model, algorithm)
     result
 }
 
+#' predict.CART
+#'
+#' @param object The \code{CART} object whose values are to be predicted.
+#' @param seed A random number seed to ensure stability of predictions.
 #' @importFrom stats na.pass
 #' @export
-predict.CART <- function(object, ...)
+predict.CART <- function(object, seed = 1232, ...)
 {
+    set.seed(seed)
     if (object$algorithm == "tree")
     {
         if(object$outcome.numeric)
