@@ -2,7 +2,8 @@ context("CART")
 
 data("spam7", package = "DAAG")
 spam.sample <- spam7[sample(seq(1,4601), 500, replace=FALSE), ]
-data(colas, package = "flipExampleData")
+data(cola, package = "flipExampleData")
+colas <- cola
 data(bank, package = "flipExampleData")
 bank$fOverall <- factor(bank$Overall)
 
@@ -14,7 +15,7 @@ for (algo in c("tree", "rpart", "party"))
                     expect_error(predict(z), NA)
                     expect_error(flipData::Probabilities(z))
 
-                    z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = algo)
+                    z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = algo))
                     expect_error(predict(z), NA)
                     expect_error(flipData::Probabilities(z), NA)
               }
@@ -84,6 +85,7 @@ for (missing in c("Exclude cases with missing data",
                 expect_error((suppressWarnings(CART(yesno ~ crl.tot + dollar + bang + money + n000 + make, data = spam.sample, subset = TRUE,  weights = NULL, output = type, missing = missing, algorithm = algo))), if (imputation) NULL else NA)
                 colas$Q32[unclass(colas$Q32) == 1] <- NA
                 colas.small <- colas[, colnames(colas) %in% c("Q32", "Q3", "Q2", "Q4_A", "Q4_B", "Q4_C", "Q11", "Q12")]
+                colas.small$Q3[1] <- NA
                 expect_error((suppressWarnings(CART(Q32 ~ Q3, data = colas.small, subset = TRUE,  weights = NULL, output = type, missing = missing, algorithm = algo))), NA)
                 expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = TRUE,  weights = NULL, output = type, missing = missing, algorithm = algo))), NA)
                 # filter
