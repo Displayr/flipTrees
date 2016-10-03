@@ -338,7 +338,7 @@ predict.CART <- function(object, seed = 1232, ...)
 #' @param object The \code{CART} object whose values are to be predicted.
 #' @importFrom stats na.pass
 #' @export
-Probabilities.CART <- function(object, ...)
+Probabilities.CART <- function(object)
 {
     if(object$outcome.numeric)
         stop("Probabilities not available for numeric dependent variables.")
