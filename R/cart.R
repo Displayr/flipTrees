@@ -303,6 +303,7 @@ textTreeWithLabels <- function(text, labels, model, algorithm)
 #'
 #' @param object The \code{CART} object whose values are to be predicted.
 #' @param seed A random number seed to ensure stability of predictions.
+#' @param ... Extra parameters. Currently not used.
 #' @importFrom stats na.pass
 #' @export
 predict.CART <- function(object, seed = 1232, ...)
@@ -310,17 +311,19 @@ predict.CART <- function(object, seed = 1232, ...)
     set.seed(seed)
     if (object$algorithm == "tree")
     {
+        class(object) <- "tree"
         if(object$outcome.numeric)
-            tree:::predict.tree(object, type = "vector", newdata = object$input.data)
+            predict(object, type = "vector", newdata = object$input.data)
         else
-            tree:::predict.tree(object, type = "class", newdata = object$input.data)
+            predict(object, type = "class", newdata = object$input.data)
     }
     else if (object$algorithm == "rpart")
     {
+        class(object) <- "rpart"
         if(object$outcome.numeric)
-            rpart:::predict.rpart(object, type = "vector", newdata = object$input.data, na.action = na.pass)
+            predict(object, type = "vector", newdata = object$input.data, na.action = na.pass)
         else
-            rpart:::predict.rpart(object, type = "class", newdata = object$input.data, na.action = na.pass)
+            predict(object, type = "class", newdata = object$input.data, na.action = na.pass)
     }
     else if (object$algorithm == "party")
     {
@@ -330,6 +333,9 @@ predict.CART <- function(object, seed = 1232, ...)
         stop(paste("Algorithm not handled:", object$algorithm))
 }
 
+#' Probabilities.CART
+#'
+#' @param object The \code{CART} object whose values are to be predicted.
 #' @importFrom stats na.pass
 #' @export
 Probabilities.CART <- function(object, ...)
@@ -337,10 +343,14 @@ Probabilities.CART <- function(object, ...)
     if(object$outcome.numeric)
         stop("Probabilities not available for numeric dependent variables.")
     if (object$algorithm == "tree")
-        tree:::predict.tree(object, type = "vector", newdata = object$input.data)
+    {
+        class(object) <- "tree"
+        predict(object, type = "vector", newdata = object$input.data)
+    }
     else if (object$algorithm == "rpart")
     {
-        m <- rpart:::predict.rpart(object, type = "matrix", newdata = object$input.data, na.action = na.pass)
+        class(object) <- "rpart"
+        m <- predict(object, type = "matrix", newdata = object$input.data, na.action = na.pass)
         lvls <- levels(object$input.data[[OutcomeName(object$terms)]])
         prob <- m[, (length(lvls) + 2):(2 * length(lvls) + 1)]
         colnames(prob) <- lvls

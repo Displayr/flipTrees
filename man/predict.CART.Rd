@@ -10,6 +10,8 @@
 \item{object}{The \code{CART} object whose values are to be predicted.}
 
 \item{seed}{A random number seed to ensure stability of predictions.}
+
+\item{...}{Extra parameters. Currently not used.}
 }
 \description{
 predict.CART
