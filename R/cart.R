@@ -56,10 +56,15 @@ CART <- function(formula,
 {
     cl <- match.call()
     .formula <- formula # Hack to work past scoping issues in car package: https://cran.r-project.org/web/packages/car/vignettes/embedding.pdf.
-    subset.description <- if (is.null(substitute(subset))) NULL else deparse(substitute(subset))
+    subset.description <- try(deparse(substitute(subset)), silent = TRUE) #We don't know whether subset is a variable in the environment or in data.
     subset <- eval(substitute(subset), data, parent.frame())
-    if (!is.null(subset.description))
-       attr(subset, "description") <- subset.description
+    if (!is.null(subset))
+    {
+        if (is.null(subset.description) | (class(subset.description) == "try-error") | !is.null(attr(subset, "name")))
+            subset.description <- Labels(subset)
+        if (is.null(attr(subset, "name")))
+            attr(subset, "name") <- subset.description
+    }
     weights <- eval(substitute(weights), data, parent.frame())
     data <- GetData(.formula, data, auxiliary.data)
     if (method == "model.frame")
