@@ -294,8 +294,9 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         node.names <- frame$splits[i.parent,]
         node.name <- ifelse(node %% 2 == 0, node.names[1], node.names[2])
         is.binary <- isBinary(model[[variable.name]])
+        # the # character is used as an inticator to make the "Not" italic
         if (is.binary && grepl("<", node.name))
-            node.name <- paste("Not", displayed.name)
+            node.name <- paste("#Not", displayed.name)
         else if (is.binary && grepl(">", node.name))
             node.name <- displayed.name
         else if (grepl("[<>]", node.name))
