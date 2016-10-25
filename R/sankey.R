@@ -115,11 +115,11 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
     { # Classification tree.
         tree.type = "Classification"
         yprob = frame$yprob
-        nms = colnames(yprob)
+        #nms = colnames(yprob)
         colnames(yprob) = NULL
-        node.descriptions = matrix(paste0(round(yprob*100),"% ", nms[col(yprob)]), ncol = length(nms))
-        node.descriptions <- apply(node.descriptions, 1, function(x) paste0(x,collapse = "<br>"))
-        node.descriptions <- paste0("<br>",node.descriptions)
+        #node.descriptions = matrix(paste0(round(yprob*100),"% ", nms[col(yprob)]), ncol = length(nms))
+        #node.descriptions <- apply(node.descriptions, 1, function(x) paste0(x,collapse = "<br>"))
+        #node.descriptions <- paste0("<br>",node.descriptions)
 
         node.color <- rep("0", nrow(frame))
         l.na = sum(is.na(custom.color))
@@ -171,8 +171,8 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         xmin <- min(outcome.variable)
         xmax <- max(outcome.variable)
         tree.type = "Regression"
-        node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1), ":") # Mean
-        node.descriptions <- node.mean
+        #node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1), ":") # Mean
+        #node.descriptions <- node.mean
         if (numeric.distribution)
         {
             nodes.distribution.temp = matrix(rep(NA, nrow(frame)*length(assigned)), nrow = nrow(frame))
@@ -279,8 +279,8 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         node.tooltips = paste("n:", frame$n)
     else
         node.tooltips = paste("n:", FormatAsReal(frame$n, digits = 1))
-    node.descriptions = paste("Description: ", node.descriptions)
-    node.tooltips = paste(node.tooltips, node.descriptions, sep = "<br>")
+    #node.descriptions = paste("Description: ", node.descriptions)
+    #node.tooltips = paste(node.tooltips, node.descriptions, sep = "<br>")
 
     root.name <- if (!is.null(labels)) unname(labels[outcome.name]) else outcome.name
     .constructNodeName <- function(node, i, i.parent, frame, tree.hash, model)
@@ -295,10 +295,10 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         node.name <- ifelse(node %% 2 == 0, node.names[1], node.names[2])
         is.binary <- isBinary(model[[variable.name]])
         # the # character is used as an inticator to make the "Not" italic
-        if (is.binary && grepl("<", node.name))
-            node.name <- paste("#Not", displayed.name)
-        else if (is.binary && grepl(">", node.name))
-            node.name <- displayed.name
+        if (is.binary && (grepl("<", node.name) || grepl("a", node.name)))
+            node.name <- paste0(displayed.name, ": ", "FALSE")
+        else if (is.binary && (grepl(">", node.name) || grepl("b", node.name)))
+            node.name <- paste0(displayed.name, ": ", "TRUE")
         else if (grepl("[<>]", node.name))
             node.name <- paste(displayed.name, node.name)
         else
@@ -327,15 +327,15 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         if (outcome.is.factor) {
             result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash, model),
                            n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
-                           id = node, Description = node.descriptions[i],
-                           tooltip = node.tooltips[i], color = node.color[i],
+                           id = node, #Description = node.descriptions[i], tooltip = node.tooltips[i],
+                           color = node.color[i],
                            nodeDistribution = yprob[i,], overallDistribution = yprob[1,], nodeVariables = nms,
                            terminalDescription = terminal.description[i])
         } else {
             result <- list(name = .constructNodeName(node, i, i.parent, frame, tree.hash, model), y = frame$yval[i], y0 = frame$yval[1],
                            n = frame$n[i], Percentage = FormatAsPercent(frame$n[i]/frame$n[1], digits = 1),
-                           id = node, Description = node.descriptions[i],
-                           tooltip = node.tooltips[i], color = node.color[i],
+                           id = node, #Description = node.descriptions[i], tooltip = node.tooltips[i],
+                           color = node.color[i],
                            nodeDistribution = nodes.distribution[[i]], overallDistribution = overall.distribution,
                            terminalDescription = terminal.description[i])
         }
@@ -376,11 +376,18 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
 
 isBinary <- function(vec)
 {
+    u <- sort(unique(vec))
     if (is.numeric(vec))
     {
-        u <- sort(unique(vec))
         length(u) == 2 && all(u == 0:1)
     }
-    else
+    else if (is.factor(vec))
+    {
+        v = levels(u)
+        length(v) == 2 && all(v == c("FAL", "TRU"))
+    }
+    else if (length(u) == 2 && all(u == c(FALSE, TRUE))) {
+        TRUE
+    } else
         FALSE
 }
