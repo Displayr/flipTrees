@@ -115,7 +115,7 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
     { # Classification tree.
         tree.type = "Classification"
         yprob = frame$yprob
-        #nms = colnames(yprob)
+        nms = colnames(yprob)
         colnames(yprob) = NULL
         #node.descriptions = matrix(paste0(round(yprob*100),"% ", nms[col(yprob)]), ncol = length(nms))
         #node.descriptions <- apply(node.descriptions, 1, function(x) paste0(x,collapse = "<br>"))
