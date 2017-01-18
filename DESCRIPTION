@@ -23,7 +23,6 @@ Imports:
     rhtmlSankeyTree,
     stats
 Remotes:
-    timelyportfolio/networkD3@feature/responsive
     NumbersInternational/flipExampleData,
     NumbersInternational/flipData,
     NumbersInternational/flipFormat,
