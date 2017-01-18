@@ -27,4 +27,5 @@ Remotes:
     NumbersInternational/flipData,
     NumbersInternational/flipFormat,
     NumbersInternational/flipU
+    NumbersInternational/rhtmlSankeyTree
 RoxygenNote: 5.0.1
