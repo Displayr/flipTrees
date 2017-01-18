@@ -23,9 +23,10 @@ Imports:
     rhtmlSankeyTree,
     stats
 Remotes:
+    timelyportfolio/networkD3@feature/responsive
     NumbersInternational/flipExampleData,
     NumbersInternational/flipData,
     NumbersInternational/flipFormat,
-    NumbersInternational/flipU
+    NumbersInternational/flipU,
     NumbersInternational/rhtmlSankeyTree
 RoxygenNote: 5.0.1
