@@ -24,9 +24,9 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' variables label is an attribute (e.g., attr(foo, "label")).
 #' @param predictor.level.treatment How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
 #' @param outcome.level.treatment How outcome factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
+#' @param seed The random number seed.
 #' @param ... Additional arguments that are passed to  \code{\link{tree}}
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
-#'
 #' @details Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
 #' @importFrom flipData GetData CalibrateWeight
 #' @importFrom flipData EstimationData
@@ -52,6 +52,7 @@ CART <- function(formula,
                  show.labels = FALSE,
                  predictor.level.treatment = "Abbreviated labels",
                  outcome.level.treatment = "Full labels",
+                 seed = 1,
                  ...)
 {
     cl <- match.call()
@@ -69,6 +70,7 @@ CART <- function(formula,
     data <- GetData(.formula, data, auxiliary.data)
     if (method == "model.frame")
         return(data)
+    set.seed(seed)
     outcome.name <- OutcomeName(formula)
     data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
@@ -108,7 +110,7 @@ CART <- function(formula,
         {
             if (outcome.is.factor)
                 result <- glmtree(formula, data = estimation.data, na.action = na.exclude,
-                                  family = binomial, inner = "estfun", terminal = "estfun")
+                                  family = binomial, inner = "estfun", terminal = "estfun", maxit=100)
             else
                 result <- lmtree(formula, data = estimation.data, na.action = na.exclude)
         }

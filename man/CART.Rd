@@ -9,7 +9,7 @@ CART(formula, data = NULL, subset = NULL, weights = NULL,
   method = "recursive.partition", algorithm = "tree",
   auxiliary.data = NULL, show.labels = FALSE,
   predictor.level.treatment = "Abbreviated labels",
-  outcome.level.treatment = "Full labels", ...)
+  outcome.level.treatment = "Full labels", seed = 12321, ...)
 }
 \arguments{
 \item{formula}{A formula expression. The left-hand-side (response) should
@@ -46,6 +46,8 @@ variables label is an attribute (e.g., attr(foo, "label")).}
 \item{predictor.level.treatment}{How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.}
 
 \item{outcome.level.treatment}{How outcome factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.}
+
+\item{seed}{The random number seed.}
 
 \item{...}{Additional arguments that are passed to  \code{\link{tree}}
 and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev}
