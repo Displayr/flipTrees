@@ -52,7 +52,7 @@ CART <- function(formula,
                  show.labels = FALSE,
                  predictor.level.treatment = "Abbreviated labels",
                  outcome.level.treatment = "Full labels",
-                 seed = 1,
+                 seed = 12321,
                  ...)
 {
     cl <- match.call()
@@ -85,9 +85,7 @@ CART <- function(formula,
         else
         {
             weights <- CalibrateWeight(processed.data$weights)
-            assign(".weight.1232312", weights, envir=.GlobalEnv)
-            result <- tree(formula, data = estimation.data, weights = .weight.1232312, model = TRUE, ...)
-            remove(".weight.1232312",  envir=.GlobalEnv)
+            result <- do.call("tree", list(formula, data = estimation.data, weights = weights, model = TRUE, ...))
         }
         class(result) <- append("CART", class(result))
     }
@@ -98,9 +96,7 @@ CART <- function(formula,
         else
         {
             weights <- CalibrateWeight(processed.data$weights)
-            assign(".weight.1232312", weights, envir=.GlobalEnv)
-            result <- rpart(formula, data = estimation.data, weights = .weight.1232312, model = TRUE, ...)
-            remove(".weight.1232312",  envir=.GlobalEnv)
+            result <- do.call("rpart", list(formula, data = estimation.data, weights = weights, model = TRUE, ...))
         }
         class(result) <- append("CART", class(result))
     }
@@ -117,15 +113,13 @@ CART <- function(formula,
         else
         {
             weights <- CalibrateWeight(processed.data$weights)
-            assign(".weight.1232312", weights, envir=.GlobalEnv)
             if (outcome.is.factor)
-                result <- glmtree(formula, data = estimation.data, weights = .weight.1232312,
+                result <- do.call("glmtree", list(formula, data = estimation.data, weights = weights,
                                   na.action = na.exclude, family = binomial, inner = "estfun",
-                                  terminal = "estfun")
+                                  terminal = "estfun"))
             else
-                result <- lmtree(formula, data = estimation.data, weights = .weight.1232312,
-                                 na.action = na.exclude)
-            remove(".weight.1232312",  envir=.GlobalEnv)
+                result <- do.call("lmtree", list(formula, data = estimation.data, weights = weights,
+                                 na.action = na.exclude))
         }
 
         # Un-remove levels with no cases

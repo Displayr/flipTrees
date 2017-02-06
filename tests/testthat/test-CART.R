@@ -31,7 +31,7 @@ test_that("rpart prediction",
     {
         expect_equal(unname(predict(z)[1]), 4.258064516129032)
     })
-z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "party")
+z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "party", seed = 1)
 test_that("party prediction",
     {
         expect_equal(unname(predict(z)[1]), 3.977272727272728)
@@ -46,7 +46,7 @@ test_that("tree Probabilities",
     {
         expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2444444444444445)
     })
-z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "party")
+z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100, algorithm = "party", seed = 1)
 test_that("tree Probabilities",
     {
         expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2916666666666667)
