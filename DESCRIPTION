@@ -23,7 +23,6 @@ Imports:
     rhtmlSankeyTree,
     stats
 Remotes:
-    NumbersInternational/flipExampleData,
     NumbersInternational/flipData,
     NumbersInternational/flipFormat,
     NumbersInternational/flipU,
