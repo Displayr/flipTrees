@@ -23,8 +23,8 @@ Imports:
     rhtmlSankeyTree,
     stats
 Remotes:
-    NumbersInternational/flipData,
-    NumbersInternational/flipFormat,
-    NumbersInternational/flipU,
-    NumbersInternational/rhtmlSankeyTree
+    Displayr/flipData,
+    Displayr/flipFormat,
+    Displayr/flipU,
+    Displayr/rhtmlSankeyTree
 RoxygenNote: 5.0.1
