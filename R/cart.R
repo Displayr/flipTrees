@@ -68,14 +68,20 @@ CART <- function(formula,
     }
     weights <- eval(substitute(weights), data, parent.frame())
     data <- GetData(.formula, data, auxiliary.data)
+    cat("line 70\n")
+    print(head(data))
     if (method == "model.frame")
         return(data)
     set.seed(seed)
     outcome.name <- OutcomeName(formula)
+    cat("outcome.name:", outcome.name, "\n")
     data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
+    cat("line 78\n")
+    print(str(processed.data))
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
+    print(head(estimation.data))
     outcome.is.factor <- is.factor(estimation.data[[outcome.name]])
 
     if (algorithm == "tree")
