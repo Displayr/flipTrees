@@ -83,6 +83,7 @@ CART <- function(formula,
     estimation.data <- processed.data$estimation.data
     print(head(estimation.data))
     outcome.is.factor <- is.factor(estimation.data[[outcome.name]])
+    cat("line 86:", outcome.is.factor, "\n")
 
     if (algorithm == "tree")
     {
@@ -93,6 +94,7 @@ CART <- function(formula,
             weights <- CalibrateWeight(processed.data$weights)
             result <- do.call("tree", list(formula, data = estimation.data, weights = weights, model = TRUE, ...))
         }
+        print(result)
         class(result) <- append("CART", class(result))
     }
     else if (algorithm == "rpart")
@@ -156,6 +158,9 @@ CART <- function(formula,
     }
     else
         stop(paste("Unhandled algorithm:", algorithm))
+
+    cat("line 162\n")
+    print(str(result))
     result$input.data <- data
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
