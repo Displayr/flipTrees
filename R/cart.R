@@ -35,7 +35,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @importFrom partykit glmtree lmtree mob
 #' @importFrom rpart rpart
 #' @importFrom tree tree
-#' @importFrom stats na.exclude binomial predict
+#' @importFrom stats na.exclude binomial predict as.formula
 #' @importFrom colorspace diverge_hsv
 #' @importFrom utils capture.output
 #' @export
@@ -69,30 +69,20 @@ CART <- function(formula,
     weights <- eval(substitute(weights), data, parent.frame())
     data <- GetData(.formula, data, auxiliary.data)
 
-    # Get rid of escape characters
+    # Get rid of escape characters in formula and data
     colnames(data) <- make.names(colnames(data))
     fstr <- paste(colnames(data)[1], paste(colnames(data)[-1], collapse=" + "), sep=" ~ ")
-    cat("New formula:", fstr, "\n")
     formula <- as.formula(fstr)
-    print(formula)
-    #return(0)
 
-    cat("line 70\n")
-    print(head(data))
     if (method == "model.frame")
         return(data)
     set.seed(seed)
     outcome.name <- OutcomeName(formula)
-    cat("outcome.name:", outcome.name, "\n")
     data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
-    cat("line 78\n")
-    print(str(processed.data))
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
-    print(head(estimation.data))
     outcome.is.factor <- is.factor(estimation.data[[outcome.name]])
-    cat("line 86:", outcome.is.factor, "\n")
 
     if (algorithm == "tree")
     {
@@ -103,7 +93,6 @@ CART <- function(formula,
             weights <- CalibrateWeight(processed.data$weights)
             result <- do.call("tree", list(formula, data = estimation.data, weights = weights, model = TRUE, ...))
         }
-        print(result)
         class(result) <- append("CART", class(result))
     }
     else if (algorithm == "rpart")
@@ -168,8 +157,6 @@ CART <- function(formula,
     else
         stop(paste("Unhandled algorithm:", algorithm))
 
-    cat("line 162\n")
-    print(str(result))
     result$input.data <- data
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
