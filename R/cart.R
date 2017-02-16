@@ -68,6 +68,15 @@ CART <- function(formula,
     }
     weights <- eval(substitute(weights), data, parent.frame())
     data <- GetData(.formula, data, auxiliary.data)
+
+    # Get rid of escape characters
+    colnames(data) <- make.names(colnames(data))
+    fstr <- paste(colnames(data)[1], paste(colnames(data)[-1], collapse=" + "), sep=" ~ ")
+    cat("New formula:", fstr, "\n")
+    #formula <- as.formula(fstr)
+    #print(formula)
+    #return(0)
+
     cat("line 70\n")
     print(head(data))
     if (method == "model.frame")
