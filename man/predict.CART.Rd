@@ -8,15 +8,19 @@
   ...)
 }
 \arguments{
-\item{object}{The \code{CART} object whose values are to be predicted.}
+\item{object}{A \code{CART} object.}
 
 \item{seed}{A random number seed to ensure stability of predictions.}
 
-\item{newdata}{An optional data frame for prediction,}
+\item{newdata}{Optionally, a data frame including the variables used to fit the model.
+If omitted, the \code{data} supplied to \code{CART()} is used before any filtering.}
 
 \item{...}{Extra parameters. Currently not used.}
 }
 \description{
-predict.CART
+Predicts values for numeric outcomes and group membership for categories based on \code{newdata}
+and a fitted CART \code{object}.  A value (which may be NA) is returned for every instance
+including those with missing data and for the fitted \code{data} before filtering in the case
+that \code{newdata} is not specified.  NA is returned for cases with unfitted factor levels.
 }
 

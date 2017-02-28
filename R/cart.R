@@ -142,7 +142,7 @@ CART <- function(formula,
         }
 
         result$frame <- partyToTreeFrame(result)
-        # $model to be consistent with other fitted objects (training data after subset and NA)
+        # $model added so as to be consistent with other fitted objects (training data after subset and NA)
         result$model <- result$data
         nds <- predict(result, newdata = data, type = "node")
         result$predicted <- result$frame$yval[nds]
@@ -307,9 +307,14 @@ textTreeWithLabels <- function(text, labels, model, algorithm)
 
 #' predict.CART
 #'
-#' @param object The \code{CART} object whose values are to be predicted.
+#' Predicts values for numeric outcomes and group membership for categories based on \code{newdata}
+#' and a fitted CART \code{object}.  A value (which may be NA) is returned for every instance
+#' including those with missing data and for the fitted \code{data} before filtering in the case
+#' that \code{newdata} is not specified.  NA is returned for cases with unfitted factor levels.
+#' @param object A \code{CART} object.
 #' @param seed A random number seed to ensure stability of predictions.
-#' @param newdata An optional data frame for prediction,
+#' @param newdata Optionally, a data frame including the variables used to fit the model.
+#' If omitted, the \code{data} supplied to \code{CART()} is used before any filtering.
 #' @param ... Extra parameters. Currently not used.
 #' @importFrom stats na.pass
 #' @importFrom flipData CheckPredictionVariables
