@@ -142,7 +142,8 @@ CART <- function(formula,
         }
 
         result$frame <- partyToTreeFrame(result)
-
+        # $model to be consistent with other fitted objects (training data after subset and NA)
+        result$model <- result$data
         nds <- predict(result, newdata = data, type = "node")
         result$predicted <- result$frame$yval[nds]
 
@@ -161,6 +162,8 @@ CART <- function(formula,
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
     result$output <- output
+    result$outcome.name <- outcome.name
+    result$subset <- subset
     if (show.labels)
         result$labels <- Labels(data)
     return(result)
@@ -306,31 +309,35 @@ textTreeWithLabels <- function(text, labels, model, algorithm)
 #'
 #' @param object The \code{CART} object whose values are to be predicted.
 #' @param seed A random number seed to ensure stability of predictions.
+#' @param newdata An optional data frame for prediction,
 #' @param ... Extra parameters. Currently not used.
 #' @importFrom stats na.pass
+#' @importFrom flipData CheckPredictionVariables
 #' @export
-predict.CART <- function(object, seed = 1232, ...)
+predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
 {
     set.seed(seed)
+    newdata = CheckPredictionVariables(object, newdata)
+
     if (object$algorithm == "tree")
     {
         class(object) <- "tree"
         if(object$outcome.numeric)
-            predict(object, type = "vector", newdata = object$input.data)
+            predict(object, type = "vector", newdata = newdata)
         else
-            predict(object, type = "class", newdata = object$input.data)
+            predict(object, type = "class", newdata = newdata)
     }
     else if (object$algorithm == "rpart")
     {
         class(object) <- "rpart"
         if(object$outcome.numeric)
-            predict(object, type = "vector", newdata = object$input.data, na.action = na.pass)
+            predict(object, type = "vector", newdata = newdata, na.action = na.pass)
         else
-            predict(object, type = "class", newdata = object$input.data, na.action = na.pass)
+            predict(object, type = "class", newdata = newdata, na.action = na.pass)
     }
     else if (object$algorithm == "party")
     {
-        object$predicted
+        object$predicted    # TODO - call predict() with newdata
     }
     else
         stop(paste("Algorithm not handled:", object$algorithm))

@@ -4,12 +4,15 @@
 \alias{predict.CART}
 \title{predict.CART}
 \usage{
-\method{predict}{CART}(object, seed = 1232, ...)
+\method{predict}{CART}(object, seed = 1232, newdata = object$input.data,
+  ...)
 }
 \arguments{
 \item{object}{The \code{CART} object whose values are to be predicted.}
 
 \item{seed}{A random number seed to ensure stability of predictions.}
+
+\item{newdata}{An optional data frame for prediction,}
 
 \item{...}{Extra parameters. Currently not used.}
 }
