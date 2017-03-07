@@ -344,7 +344,7 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
     }
     else if (object$algorithm == "party")
     {
-        object$predicted    # TODO - call predict() with newdata for party
+        object$predicted
     }
     else
         stop(paste("Algorithm not handled:", object$algorithm))

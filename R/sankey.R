@@ -168,8 +168,8 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
 
         ymin <- min(frame$yval)
         ymax <- max(frame$yval)
-        xmin <- min(outcome.variable)
-        xmax <- max(outcome.variable)
+        xmin <- min(outcome.variable, na.rm = TRUE)
+        xmax <- max(outcome.variable, na.rm = TRUE)
         tree.type = "Regression"
         #node.mean = paste0("Mean(", outcome.name, ")", " = ", FormatAsReal(frame$yval, digits = 1), ":") # Mean
         #node.descriptions <- node.mean
