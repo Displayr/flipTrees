@@ -165,9 +165,17 @@ CART <- function(formula,
     if (is.null(subset))
         subset <- rep(TRUE, nrow(data))
     result$subset <- subset
-    result$confusion <- ConfusionMatrix(result, subset, unfiltered.weights)
-    if (show.labels)
+
+    if (result$show.labels <- show.labels)
+    {
         result$labels <- Labels(data)
+        result$outcome.label <- result$labels[match(outcome.name, names(data))]
+    }
+    else
+        result$outcome.label <- outcome.name
+
+    result$confusion <- ConfusionMatrix(result, subset, unfiltered.weights)
+
     return(result)
 }
 
