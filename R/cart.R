@@ -8,12 +8,11 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' no interaction terms. Both \code{.} and \code{-} are allowed: regression trees can have
 #' offset terms
 #' @param data A data frame in which to preferentially interpret formula, weights and subset
-#' @param subset An optional vector specifying a subset of observations to be used in the fitting process, or,
+#' @param subset An optional vector specifying a subset of observations to be used in the fitting process or
 #' the name of a variable in \code{data}. It may not be an expression.
-#' \code{subset} may not
-#' @param weights An optional vector of sampling weights, or, the name or,
-#' the name of a variable in \code{data}. It may not be an expression.
-#' @param output How the tree is represented: \code{"Sankey"}, \code{"Party"}, \code{"Tree"}, or \code{"Text"}.
+#' @param weights An optional vector of sampling weights or the name
+#' of a variable in \code{data}. It may not be an expression.
+#' @param output How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, or \code{"Confusion Matrix"}.
 #' @param missing How missing data is to be treated in the regression. Options are:
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
@@ -31,6 +30,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @importFrom flipData GetData CalibrateWeight
 #' @importFrom flipData EstimationData
 #' @importFrom flipFormat Labels
+#' @importFrom flipRegression ConfusionMatrix
 #' @importFrom flipU OutcomeName
 #' @importFrom partykit glmtree lmtree mob
 #' @importFrom rpart rpart
@@ -87,22 +87,22 @@ CART <- function(formula,
     if (algorithm == "tree")
     {
         if (is.null(weights))
-            result <- tree(formula, data = estimation.data, model = TRUE, ...)
+            result <- tree(formula, data = estimation.data, model = FALSE, ...)
         else
         {
             weights <- CalibrateWeight(processed.data$weights)
-            result <- do.call("tree", list(formula, data = estimation.data, weights = weights, model = TRUE, ...))
+            result <- do.call("tree", list(formula, data = estimation.data, weights = weights, model = FALSE, ...))
         }
         class(result) <- append("CART", class(result))
     }
     else if (algorithm == "rpart")
     {
         if (is.null(weights))
-            result <- rpart(formula, data = estimation.data, model = TRUE, ...)
+            result <- rpart(formula, data = estimation.data, model = FALSE, ...)
         else
         {
             weights <- CalibrateWeight(processed.data$weights)
-            result <- do.call("rpart", list(formula, data = estimation.data, weights = weights, model = TRUE, ...))
+            result <- do.call("rpart", list(formula, data = estimation.data, weights = weights, model = FALSE, ...))
         }
         class(result) <- append("CART", class(result))
     }
@@ -142,8 +142,6 @@ CART <- function(formula,
         }
 
         result$frame <- partyToTreeFrame(result)
-        # $model added so as to be consistent with other fitted objects (training data after subset and NA)
-        result$model <- result$data
         nds <- predict(result, newdata = data, type = "node")
         result$predicted <- result$frame$yval[nds]
 
@@ -159,11 +157,15 @@ CART <- function(formula,
         stop(paste("Unhandled algorithm:", algorithm))
 
     result$input.data <- data
+    result$model <- data           # for consistency with other fitted objects
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
     result$output <- output
     result$outcome.name <- outcome.name
+    if (is.null(subset))
+        subset <- rep(TRUE, nrow(data))
     result$subset <- subset
+    result$confusion <- ConfusionMatrix(result, subset, unfiltered.weights)
     if (show.labels)
         result$labels <- Labels(data)
     return(result)
@@ -342,7 +344,7 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
     }
     else if (object$algorithm == "party")
     {
-        object$predicted    # TODO - call predict() with newdata
+        object$predicted    # TODO - call predict() with newdata for party
     }
     else
         stop(paste("Algorithm not handled:", object$algorithm))
@@ -352,6 +354,7 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
 #'
 #' @param object The \code{CART} object whose values are to be predicted.
 #' @importFrom stats na.pass
+#' @importFrom flipRegression PrintConfusionMatrix
 #' @export
 Probabilities.CART <- function(object)
 {
@@ -432,6 +435,10 @@ print.CART <- function(x, ...)
         else if (x$algorithm == "party")
             cat(textTreeWithLabels(x$nodetext, x$labels, x$data, x$algorithm))
     }
-    else
+    else if (x$output == "Confusion Matrix")
+    {
+        PrintConfusionMatrix(x)
+    }
+        else
         stop(paste("Unhandled output: ", x$output))
 }

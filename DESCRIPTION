@@ -17,6 +17,7 @@ Imports:
     partykit,
     flipData,
     flipFormat,
+    flipRegression,
     flipU,
     hash,
     colorspace,
@@ -25,6 +26,7 @@ Imports:
 Remotes:
     Displayr/flipData,
     Displayr/flipFormat,
+    Displayr/flipRegression,
     Displayr/flipU,
     Displayr/rhtmlSankeyTree
 RoxygenNote: 5.0.1

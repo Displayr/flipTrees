@@ -21,14 +21,13 @@ offset terms}
 
 \item{data}{A data frame in which to preferentially interpret formula, weights and subset}
 
-\item{subset}{An optional vector specifying a subset of observations to be used in the fitting process, or,
-the name of a variable in \code{data}. It may not be an expression.
-\code{subset} may not}
-
-\item{weights}{An optional vector of sampling weights, or, the name or,
+\item{subset}{An optional vector specifying a subset of observations to be used in the fitting process or
 the name of a variable in \code{data}. It may not be an expression.}
 
-\item{output}{How the tree is represented: \code{"Sankey"}, \code{"Party"}, \code{"Tree"}, or \code{"Text"}.}
+\item{weights}{An optional vector of sampling weights or the name
+of a variable in \code{data}. It may not be an expression.}
+
+\item{output}{How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, or \code{"Confusion Matrix"}.}
 
 \item{missing}{How missing data is to be treated in the regression. Options are:
 \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
