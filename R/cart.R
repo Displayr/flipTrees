@@ -12,7 +12,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' the name of a variable in \code{data}. It may not be an expression.
 #' @param weights An optional vector of sampling weights or the name
 #' of a variable in \code{data}. It may not be an expression.
-#' @param output How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, or \code{"Confusion Matrix"}.
+#' @param output How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, or \code{"Prediction-Accuracy Table"}.
 #' @param missing How missing data is to be treated in the regression. Options are:
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
@@ -443,7 +443,7 @@ print.CART <- function(x, ...)
         else if (x$algorithm == "party")
             cat(textTreeWithLabels(x$nodetext, x$labels, x$data, x$algorithm))
     }
-    else if (x$output == "Confusion Matrix")
+    else if (x$output == "Prediction-Accuracy Table")
     {
         PrintConfusionMatrix(x$confusion, x$sample.description)
     }

@@ -77,7 +77,7 @@ test_that("Error if missing data",
 for (missing in c("Exclude cases with missing data",
                   "Use partial data",
                   "Imputation (replace missing values with estimates)"))
-    for (type in c("Sankey", "Tree", "Text", "Confusion Matrix"))
+    for (type in c("Sankey", "Tree", "Text", "Prediction-Accuracy Table"))
         for (algo in c("tree", "rpart", "party"))
             test_that(paste(missing, type, algo),
             {
