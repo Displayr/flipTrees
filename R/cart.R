@@ -149,7 +149,7 @@ CART <- function(formula,
             result$probabilities <- result$frame$yprob[nds, ]
 
         result$nodetext <- paste(capture.output(result$node), collapse = "\n")
-        result$node <- NULL
+        #result$node <- NULL    removed to allow predict to work with newdata
 
         class(result) <- "CART"
     }
@@ -352,7 +352,17 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
     }
     else if (object$algorithm == "party")
     {
-        object$predicted
+        if(object$outcome.numeric)
+        {
+            class(object) <- c("lmtree", "modelparty", "party")
+            predict(object, type = "response", newdata = newdata, na.action = na.pass)
+        }
+        else
+        {
+            class(object) <- c("glmtree", "modelparty", "party")
+            predict(object, type = "response", newdata = newdata, na.action = na.pass)
+        }
+        #object$predicted
     }
     else
         stop(paste("Algorithm not handled:", object$algorithm))
