@@ -142,6 +142,7 @@ CART <- function(formula,
         }
 
         result$frame <- partyToTreeFrame(result)
+        rsp <- predict(result, newdata = data, type = "response")
         nds <- predict(result, newdata = data, type = "node")
         result$predicted <- result$frame$yval[nds]
 
@@ -355,13 +356,13 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
         if(object$outcome.numeric)
         {
             class(object) <- c("lmtree", "modelparty", "party")
-            predict(object, type = "response", newdata = newdata, na.action = na.pass)
         }
         else
         {
             class(object) <- c("glmtree", "modelparty", "party")
-            predict(object, type = "response", newdata = newdata, na.action = na.pass)
         }
+        nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
+        object$frame$yval[nds]
         #object$predicted
     }
     else
