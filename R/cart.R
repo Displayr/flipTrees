@@ -373,7 +373,6 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
 #'
 #' @param object The \code{CART} object whose values are to be predicted.
 #' @importFrom stats na.pass
-#' @importFrom flipRegression PrintConfusionMatrix
 #' @export
 Probabilities.CART <- function(object)
 {
@@ -456,7 +455,7 @@ print.CART <- function(x, ...)
     }
     else if (x$output == "Prediction-Accuracy Table")
     {
-        PrintConfusionMatrix(x$confusion, x$sample.description)
+        print(x$confusion)
     }
         else
         stop(paste("Unhandled output: ", x$output))
