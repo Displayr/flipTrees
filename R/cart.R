@@ -142,7 +142,6 @@ CART <- function(formula,
         }
 
         result$frame <- partyToTreeFrame(result)
-        rsp <- predict(result, newdata = data, type = "response")
         nds <- predict(result, newdata = data, type = "node")
         result$predicted <- result$frame$yval[nds]
 
@@ -150,16 +149,16 @@ CART <- function(formula,
             result$probabilities <- result$frame$yprob[nds, ]
 
         result$nodetext <- paste(capture.output(result$node), collapse = "\n")
-        #result$node <- NULL    removed to allow predict to work with newdata
+        result$node <- NULL
 
         class(result) <- "CART"
     }
     else
         stop(paste("Unhandled algorithm:", algorithm))
 
-    result$sample.description <- processed.data$description
     result$input.data <- data
-    result$model <- data           # for consistency with other fitted objects
+    result$model <- data           # duplicate for naming consistency with other fitted objects
+    result$sample.description <- processed.data$description
     result$outcome.numeric <- !outcome.is.factor
     result$algorithm <- algorithm
     result$output <- output
@@ -330,7 +329,6 @@ textTreeWithLabels <- function(text, labels, model, algorithm)
 #' @param ... Extra parameters. Currently not used.
 #' @importFrom stats na.pass
 #' @importFrom flipData CheckPredictionVariables
-#' @importFrom utils str
 #' @export
 predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
 {
@@ -355,27 +353,6 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
     }
     else if (object$algorithm == "party")
     {
-        if(object$outcome.numeric)
-        {
-            class(object) <- c("lmtree", "modelparty", "party")
-        }
-        else
-        {
-            class(object) <- c("glmtree", "modelparty", "party")
-        }
-        out <- capture.output(str(newdata))
-        out <- paste(out, collapse="\n")
-        warning("str(newdata) is", out)
-        out <- capture.output(str(object))
-        out <- paste(out, collapse="\n")
-        warning("str(object) is", out)
-        #nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
-        #out <- capture.output(str(nds))
-        #out <- paste(out, collapse="\n")
-        #warning("str(nds) is", out)
-        #warning("nds is ", nds)
-        warning("yvals is ", object$frame$yval)
-        #object$frame$yval[nds]
         object$predicted
     }
     else
