@@ -149,7 +149,7 @@ CART <- function(formula,
             result$probabilities <- result$frame$yprob[nds, ]
 
         result$nodetext <- paste(capture.output(result$node), collapse = "\n")
-        #result$node <- NULL    comment out to allow prediction on newdata for party
+        result$node <- NULL    # see comment for DS-1092
 
         class(result) <- "CART"
     }
@@ -353,10 +353,10 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
     }
     else if (object$algorithm == "party")
     {
-        if(object$outcome.numeric)
-            class(object) <- c("lmtree", "modelparty", "party")
-        else
-            class(object) <- c("glmtree", "modelparty", "party")
+        #if(object$outcome.numeric)     see comment for DS-1092
+        #    class(object) <- c("lmtree", "modelparty", "party")
+        #else
+        #    class(object) <- c("glmtree", "modelparty", "party")
         #nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
         #object$frame$yval[nds]
         object$predicted
