@@ -330,6 +330,7 @@ textTreeWithLabels <- function(text, labels, model, algorithm)
 #' @param ... Extra parameters. Currently not used.
 #' @importFrom stats na.pass
 #' @importFrom flipData CheckPredictionVariables
+#' @importFrom utils str
 #' @export
 predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
 {
@@ -362,7 +363,18 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
         {
             class(object) <- c("glmtree", "modelparty", "party")
         }
+        out <- capture.output(str(newdata))
+        out <- paste(out, collapse="\n")
+        warning("str(newdata) is", out)
+        out <- capture.output(str(object))
+        out <- paste(out, collapse="\n")
+        warning("str(object) is", out)
         nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
+        out <- capture.output(str(nds))
+        out <- paste(out, collapse="\n")
+        warning("str(nds) is", out)
+        warning("nds is ", nds)
+        warning("yvals is ", object$frame$yval)
         object$frame$yval[nds]
         #object$predicted
     }
