@@ -353,6 +353,12 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
     }
     else if (object$algorithm == "party")
     {
+        if(object$outcome.numeric)
+            class(object) <- c("lmtree")
+        else
+            class(object) <- c("glmtree")
+        #nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
+        #object$frame$yval[nds]
         object$predicted
     }
     else
