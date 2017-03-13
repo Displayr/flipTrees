@@ -369,13 +369,13 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
         out <- capture.output(str(object))
         out <- paste(out, collapse="\n")
         warning("str(object) is", out)
-        nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
-        out <- capture.output(str(nds))
-        out <- paste(out, collapse="\n")
-        warning("str(nds) is", out)
-        warning("nds is ", nds)
+        #nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
+        #out <- capture.output(str(nds))
+        #out <- paste(out, collapse="\n")
+        #warning("str(nds) is", out)
+        #warning("nds is ", nds)
         warning("yvals is ", object$frame$yval)
-        object$frame$yval[nds]
+        #object$frame$yval[nds]
         object$predicted
     }
     else
