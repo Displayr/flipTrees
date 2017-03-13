@@ -157,6 +157,7 @@ CART <- function(formula,
     else
         stop(paste("Unhandled algorithm:", algorithm))
 
+    result$sample.description <- processed.data$description
     result$input.data <- data
     result$model <- data           # for consistency with other fitted objects
     result$outcome.numeric <- !outcome.is.factor
