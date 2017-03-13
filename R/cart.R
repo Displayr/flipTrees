@@ -357,9 +357,9 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
             class(object) <- c("lmtree", "modelparty", "party")
         else
             class(object) <- c("glmtree", "modelparty", "party")
-        nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
-        object$frame$yval[nds]
-        #object$predicted
+        #nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
+        #object$frame$yval[nds]
+        object$predicted
     }
     else
         stop(paste("Algorithm not handled:", object$algorithm))
