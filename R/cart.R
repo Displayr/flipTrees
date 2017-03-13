@@ -376,7 +376,7 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
         warning("nds is ", nds)
         warning("yvals is ", object$frame$yval)
         object$frame$yval[nds]
-        #object$predicted
+        object$predicted
     }
     else
         stop(paste("Algorithm not handled:", object$algorithm))
