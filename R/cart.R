@@ -149,8 +149,7 @@ CART <- function(formula,
             result$probabilities <- result$frame$yprob[nds, ]
 
         result$nodetext <- paste(capture.output(result$node), collapse = "\n")
-        class(result$node) <- "partytemp"
-        #result$node <- NULL
+        result$node <- NULL    # causes serialization issues, see DS-1092 / RS-2498
 
         class(result) <- "CART"
     }
@@ -354,14 +353,13 @@ predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
     }
     else if (object$algorithm == "party")
     {
-        if(object$outcome.numeric)
-            class(object) <- c("lmtree", "modelparty", "party")
-        else
-            class(object) <- c("glmtree", "modelparty", "party")
-        class(object$node) <- "partynode"
-        nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
-        object$frame$yval[nds]
-        #object$predicted
+        #if(object$outcome.numeric)
+        #    class(object) <- c("lmtree", "modelparty", "party")
+        #else
+        #    class(object) <- c("glmtree", "modelparty", "party")
+        #nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
+        #object$frame$yval[nds]
+        object$predicted
     }
     else
         stop(paste("Algorithm not handled:", object$algorithm))
