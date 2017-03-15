@@ -149,7 +149,7 @@ CART <- function(formula,
             result$probabilities <- result$frame$yprob[nds, ]
 
         result$nodetext <- paste(capture.output(result$node), collapse = "\n")
-        #result$node <- NULL    # causes serialization issues, see DS-1092 / RS-2498
+        result$node <- NULL    # causes serialization issues, see DS-1092 / RS-2498
 
         class(result) <- "CART"
     }
