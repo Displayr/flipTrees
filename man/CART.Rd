@@ -6,9 +6,8 @@
 \usage{
 CART(formula, data = NULL, subset = NULL, weights = NULL,
   output = "Sankey", missing = "Use partial data",
-  method = "recursive.partition", algorithm = "tree",
-  auxiliary.data = NULL, show.labels = FALSE,
-  predictor.level.treatment = "Abbreviated labels",
+  method = "recursive.partition", auxiliary.data = NULL,
+  show.labels = FALSE, predictor.level.treatment = "Abbreviated labels",
   outcome.level.treatment = "Full labels", seed = 12321, ...)
 }
 \arguments{
@@ -35,8 +34,6 @@ of a variable in \code{data}. It may not be an expression.}
 
 \item{method}{A character string giving the method to use. The only other useful value is "model.frame".}
 
-\item{algorithm}{The algorithm used to generate the tree. Takes the values "tree", "rpart" and "party".}
-
 \item{auxiliary.data}{A data frame containing additional variables to be used in imputation.}
 
 \item{show.labels}{Shows the variable labels, as opposed to the names, in the outputs, where a
@@ -48,7 +45,7 @@ variables label is an attribute (e.g., attr(foo, "label")).}
 
 \item{seed}{The random number seed.}
 
-\item{...}{Additional arguments that are passed to  \code{\link{tree}}
+\item{...}{Other arguments to be supplied to \code{\link{rpart}}.
 and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev}
 }
 \description{

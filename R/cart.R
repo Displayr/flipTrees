@@ -17,14 +17,13 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
 #' @param method A character string giving the method to use. The only other useful value is "model.frame".
-#' @param algorithm The algorithm used to generate the tree. Takes the values "tree", "rpart" and "party".
 #' @param auxiliary.data A data frame containing additional variables to be used in imputation.
 #' @param show.labels Shows the variable labels, as opposed to the names, in the outputs, where a
 #' variables label is an attribute (e.g., attr(foo, "label")).
 #' @param predictor.level.treatment How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
 #' @param outcome.level.treatment How outcome factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
 #' @param seed The random number seed.
-#' @param ... Additional arguments that are passed to  \code{\link{tree}}
+#' @param ... Other arguments to be supplied to \code{\link{rpart}}.
 #' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
 #' @details Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
 #' @importFrom flipData GetData CalibrateWeight
@@ -32,11 +31,8 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @importFrom flipFormat Labels
 #' @importFrom flipRegression ConfusionMatrix
 #' @importFrom flipU OutcomeName
-#' @importFrom partykit glmtree lmtree mob
-#' @importFrom rpart rpart
-#' @importFrom tree tree
+#' @importFrom rpart rpart rpart.control
 #' @importFrom stats na.exclude binomial predict as.formula
-#' @importFrom colorspace diverge_hsv
 #' @importFrom utils capture.output
 #' @export
 
@@ -47,7 +43,6 @@ CART <- function(formula,
                  output = "Sankey",
                  missing = "Use partial data",
                  method = "recursive.partition",
-                 algorithm = "tree",
                  auxiliary.data = NULL,
                  show.labels = FALSE,
                  predictor.level.treatment = "Abbreviated labels",
@@ -84,83 +79,19 @@ CART <- function(formula,
     estimation.data <- processed.data$estimation.data
     outcome.is.factor <- is.factor(estimation.data[[outcome.name]])
 
-    if (algorithm == "tree")
-    {
-        if (is.null(weights))
-            result <- tree(formula, data = estimation.data, model = FALSE, ...)
-        else
-        {
-            weights <- CalibrateWeight(processed.data$weights)
-            result <- do.call("tree", list(formula, data = estimation.data, weights = weights, model = FALSE, ...))
-        }
-        class(result) <- append("CART", class(result))
-    }
-    else if (algorithm == "rpart")
-    {
-        if (is.null(weights))
-            result <- rpart(formula, data = estimation.data, model = FALSE, ...)
-        else
-        {
-            weights <- CalibrateWeight(processed.data$weights)
-            result <- do.call("rpart", list(formula, data = estimation.data, weights = weights, model = FALSE, ...))
-        }
-        class(result) <- append("CART", class(result))
-    }
-    else if (algorithm == "party")
-    {
-        if (is.null(weights))
-        {
-            if (outcome.is.factor)
-                result <- glmtree(formula, data = estimation.data, na.action = na.exclude,
-                                  family = binomial, inner = "estfun", terminal = "estfun", maxit=100)
-            else
-                result <- lmtree(formula, data = estimation.data, na.action = na.exclude)
-        }
-        else
-        {
-            weights <- CalibrateWeight(processed.data$weights)
-            if (outcome.is.factor)
-                result <- do.call("glmtree", list(formula, data = estimation.data, weights = weights,
-                                  na.action = na.exclude, family = binomial, inner = "estfun",
-                                  terminal = "estfun"))
-            else
-                result <- do.call("lmtree", list(formula, data = estimation.data, weights = weights,
-                                 na.action = na.exclude))
-        }
-
-        # Un-remove levels with no cases
-        if (outcome.is.factor)
-        {
-            outcome.var <- result$data[[outcome.name]]
-            lvls <- levels(outcome.var)
-            correct.lvls <- levels(data[[outcome.name]])
-            n.lvls <- length(correct.lvls)
-            num <- as.numeric(outcome.var)
-            for (l in lvls)
-                num[outcome.var == l] <- (1:n.lvls)[correct.lvls == l]
-            result$data[[outcome.name]] <- factor(num, 1:n.lvls, labels = correct.lvls)
-        }
-
-        result$frame <- partyToTreeFrame(result)
-        nds <- predict(result, newdata = data, type = "node")
-        result$predicted <- result$frame$yval[nds]
-
-        if (outcome.is.factor)
-            result$probabilities <- result$frame$yprob[nds, ]
-
-        result$nodetext <- paste(capture.output(result$node), collapse = "\n")
-        result$node <- NULL    # causes serialization issues, see DS-1092 / RS-2498
-
-        class(result) <- "CART"
-    }
+    if (is.null(weights))
+        result <- rpart(formula, data = estimation.data, model = FALSE, ...)
     else
-        stop(paste("Unhandled algorithm:", algorithm))
+    {
+        weights <- CalibrateWeight(processed.data$weights)
+        result <- do.call("rpart", list(formula, data = estimation.data, weights = weights, model = FALSE, ...))
+    }
+    class(result) <- append("CART", class(result))
 
-    result$input.data <- data
-    result$model <- data           # duplicate for naming consistency with other fitted objects
+    result$missing <- missing
+    result$model <- data
     result$sample.description <- processed.data$description
     result$outcome.numeric <- !outcome.is.factor
-    result$algorithm <- algorithm
     result$output <- output
     result$outcome.name <- outcome.name
     if (is.null(subset))
@@ -271,47 +202,21 @@ shortenFactorLevels <- function(data, outcome.name, predictor.level.treatment, o
     result
 }
 
-textTreeWithLabels <- function(text, labels, model, algorithm)
+textTreeWithLabels <- function(text, labels, model)
 {
     result <- text
-    if (algorithm == "tree")
-    {
-        if (!is.null(labels))
-            for (i in seq(labels))
-            {
-                name <- names(labels[i])
-                if (is.factor(model[[name]]))
-                    result <- gsub(paste0(") ", name, ":"), paste0(") ", unname(labels[i]), ":"), result)
-                else
-                    result <- gsub(paste0(") ", name, " "), paste0(") ", unname(labels[i]), " "), result)
-            }
-    }
-    else if (algorithm == "rpart")
-    {
-        if (!is.null(labels))
-            for (i in seq(labels))
-            {
-                name <- names(labels[i])
-                if (is.factor(model[[name]]))
-                 result <- gsub(paste0(") ", name, "="), paste0(") ", unname(labels[i]), "="), result)
-                else
-                {
-                    result <- gsub(paste0(") ", name, ">"), paste0(") ", unname(labels[i]), ">"), result)
-                    result <- gsub(paste0(") ", name, "<"), paste0(") ", unname(labels[i]), "<"), result)
-                }
-            }
-    }
-    else if (algorithm == "party")
-    {
-        for (i in seq(model))
+    if (!is.null(labels))
+        for (i in seq(labels))
         {
-            name <- colnames(model)[i]
-            displayed.name <- if (!is.null(labels)) unname(labels[name]) else name
-            result <- gsub(paste0("] V", i, " "), paste0("] ", displayed.name, " "), result)
+            name <- names(labels[i])
+            if (is.factor(model[[name]]))
+                result <- gsub(paste0(") ", name, "="), paste0(") ", unname(labels[i]), "="), result)
+            else
+            {
+                result <- gsub(paste0(") ", name, ">"), paste0(") ", unname(labels[i]), ">"), result)
+                result <- gsub(paste0(") ", name, "<"), paste0(") ", unname(labels[i]), "<"), result)
+            }
         }
-    }
-    else
-        stop(paste("Algorithm not handled:", algorithm))
 
     result
 }
@@ -320,49 +225,31 @@ textTreeWithLabels <- function(text, labels, model, algorithm)
 #'
 #' Predicts values for numeric outcomes and group membership for categories based on \code{newdata}
 #' and a fitted CART \code{object}.  A value (which may be NA) is returned for every instance
-#' including those with missing data and for the fitted \code{data} before filtering in the case
-#' that \code{newdata} is not specified.  NA is returned for cases with unfitted factor levels.
+#' in \code{newdata} including those with missing data. NA is returned for cases with unfitted factor levels.
 #' @param object A \code{CART} object.
 #' @param seed A random number seed to ensure stability of predictions.
 #' @param newdata Optionally, a data frame including the variables used to fit the model.
 #' If omitted, the \code{data} supplied to \code{CART()} is used before any filtering.
 #' @param ... Extra parameters. Currently not used.
-#' @importFrom stats na.pass
+#' @importFrom stats na.pass na.omit complete.cases
 #' @importFrom flipData CheckPredictionVariables
 #' @export
-predict.CART <- function(object, seed = 1232, newdata = object$input.data, ...)
+predict.CART <- function(object, seed = 1232, newdata = object$model, ...)
 {
     set.seed(seed)
     newdata = CheckPredictionVariables(object, newdata)
+    class(object) <- "rpart"
+    type <- ifelse(object$outcome.numeric, "vector", "class")
 
-    if (object$algorithm == "tree")
-    {
-        class(object) <- "tree"
-        if(object$outcome.numeric)
-            predict(object, type = "vector", newdata = newdata)
-        else
-            predict(object, type = "class", newdata = newdata)
-    }
-    else if (object$algorithm == "rpart")
-    {
-        class(object) <- "rpart"
-        if(object$outcome.numeric)
-            predict(object, type = "vector", newdata = newdata, na.action = na.pass)
-        else
-            predict(object, type = "class", newdata = newdata, na.action = na.pass)
-    }
-    else if (object$algorithm == "party")
-    {
-        #if(object$outcome.numeric)
-        #    class(object) <- c("lmtree", "modelparty", "party")
-        #else
-        #    class(object) <- c("glmtree", "modelparty", "party")
-        #nds <- predict(object, type = "node", newdata = newdata, na.action = na.pass)
-        #object$frame$yval[nds]
-        object$predicted
+    # If error or exclude for missing data then predict NA for cases with any missing data.
+    # If partial or impute for missing data then allow rpart to predict for cases with missing data.
+    if (object$missing == "Error if missing data" || object$missing == "Exclude cases with missing data") {
+        newdata[complete.cases(newdata), "prediction"] <-
+            predict(object, type = type, newdata = newdata[complete.cases(newdata), , drop = FALSE], na.action = na.omit)
+        return(newdata$prediction)
     }
     else
-        stop(paste("Algorithm not handled:", object$algorithm))
+        predict(object, type = type, newdata = newdata, na.action = na.pass)
 }
 
 #' Probabilities.CART
@@ -374,24 +261,13 @@ Probabilities.CART <- function(object)
 {
     if(object$outcome.numeric)
         stop("Probabilities not available for numeric dependent variables.")
-    if (object$algorithm == "tree")
-    {
-        class(object) <- "tree"
-        predict(object, type = "vector", newdata = object$input.data)
-    }
-    else if (object$algorithm == "rpart")
-    {
-        class(object) <- "rpart"
-        m <- predict(object, type = "matrix", newdata = object$input.data, na.action = na.pass)
-        lvls <- levels(object$input.data[[OutcomeName(object$terms)]])
-        prob <- m[, (length(lvls) + 2):(2 * length(lvls) + 1)]
-        colnames(prob) <- lvls
-        prob
-    }
-    else if (object$algorithm == "party")
-        object$probabilities
-    else
-        stop(paste("Algorithm not handled:", object$algorithm))
+
+    class(object) <- "rpart"
+    m <- predict(object, type = "matrix", newdata = object$model, na.action = na.pass)
+    lvls <- levels(object$model[[OutcomeName(object$terms)]])
+    prob <- m[, (length(lvls) + 2):(2 * length(lvls) + 1)]
+    colnames(prob) <- lvls
+    prob
 }
 
 #' @importFrom graphics plot
@@ -399,60 +275,32 @@ Probabilities.CART <- function(object)
 #' @export
 print.CART <- function(x, ...)
 {
-    if (x$algorithm != "tree" && x$algorithm != "rpart" && x$algorithm != "party")
-        stop(paste("Algorithm not handled:", x$algorithm))
-
     if (nrow(x$frame) == 1)
         stop("Output tree has one node and no splits. Change the inputs to produce a useful tree.")
 
     if (x$output == "Sankey")
     {
-        tree.list <- if (x$algorithm == "tree")
-            treeFrameToList(x$frame, attr(x, "xlevels"), x$model, x$where, x$labels)
-        else if (x$algorithm == "rpart")
-        {
-            frame <- rPartToTreeFrame(x)
-            treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where, x$labels)
-        }
-        else if (x$algorithm == "party")
-            treeFrameToList(x$frame, getXLevels(x), x$data, x$fitted[[1]], x$labels)
+        frame <- rPartToTreeFrame(x)
+        tree.list <- treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where, x$labels)
         plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100, numeric.distribution = TRUE,
                           tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
         print(plt)
     }
     else if (x$output == "Tree")
     {
-        prty <- if (x$algorithm == "tree")
-            treeFrameToParty(x$frame, attr(x, "xlevels"), x$model, x$terms, x$labels)
-        else if (x$algorithm == "rpart")
-        {
-            frame <- rPartToTreeFrame(x)
-            treeFrameToParty(frame, attr(x, "xlevels"), x$model, x$terms, x$labels)
-        }
-        else if (x$algorithm == "party")
-            treeFrameToParty(x$frame, getXLevels(x), x$data, x$terms, x$labels)
-
+        frame <- rPartToTreeFrame(x)
+        prty <- treeFrameToParty(frame, attr(x, "xlevels"), x$model, x$terms, x$labels)
         plot(prty, ip_args = list(id = FALSE), tp_args = list(id = FALSE, height = 3))
     }
     else if (x$output == "Text")
     {
-        if (x$algorithm == "tree")
-        {
-            class(x) <- "tree"
-            cat(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model, x$algorithm))
-        }
-        else if (x$algorithm == "rpart")
-        {
-            class(x) <- "rpart"
-            cat(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model, x$algorithm))
-        }
-        else if (x$algorithm == "party")
-            cat(textTreeWithLabels(x$nodetext, x$labels, x$data, x$algorithm))
+        class(x) <- "rpart"
+        cat(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model))
     }
     else if (x$output == "Prediction-Accuracy Table")
     {
         print(x$confusion)
     }
-        else
+    else
         stop(paste("Unhandled output: ", x$output))
 }
