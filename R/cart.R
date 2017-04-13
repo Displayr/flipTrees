@@ -12,11 +12,12 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' the name of a variable in \code{data}. It may not be an expression.
 #' @param weights An optional vector of sampling weights or the name
 #' of a variable in \code{data}. It may not be an expression.
-#' @param output How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, or \code{"Prediction-Accuracy Table"}.
+#' @param output How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, \code{"Prediction-Accuracy Table"} or \code{"Cross Validation"}.
 #' @param missing How missing data is to be treated in the regression. Options are:
 #' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
-#' @param method A character string giving the method to use. The only other useful value is "model.frame".
+#' @param prune How to prune the tree according to the cross-validated error.  Options are:
+#' \code{"None"}, \code{"Minimum error"} and \code{"Smallest tree"}.
 #' @param auxiliary.data A data frame containing additional variables to be used in imputation.
 #' @param show.labels Shows the variable labels, as opposed to the names, in the outputs, where a
 #' variables label is an attribute (e.g., attr(foo, "label")).
@@ -42,7 +43,7 @@ CART <- function(formula,
                  weights = NULL,
                  output = "Sankey",
                  missing = "Use partial data",
-                 method = "recursive.partition",
+                 prune = "None",
                  auxiliary.data = NULL,
                  show.labels = FALSE,
                  predictor.level.treatment = "Abbreviated labels",
@@ -69,8 +70,6 @@ CART <- function(formula,
     fstr <- paste(colnames(data)[1], paste(colnames(data)[-1], collapse=" + "), sep=" ~ ")
     formula <- as.formula(fstr)
 
-    if (method == "model.frame")
-        return(data)
     set.seed(seed)
     outcome.name <- OutcomeName(formula)
     data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
@@ -86,6 +85,23 @@ CART <- function(formula,
         weights <- CalibrateWeight(processed.data$weights)
         result <- do.call("rpart", list(formula, data = estimation.data, weights = weights, model = FALSE, ...))
     }
+
+    if (prune == "Minimum error")
+    {
+        result <- prune(result, cp = result$cptable[which.min(result$cptable[, "xerror"]), "CP"])
+    }
+    else if (prune == "Smallest tree")
+    {
+        i.min.xerror <- which.min(result$cptable[, "xerror"])
+        xerror.threshold <- result$cptable[i.min.xerror, "xerror"] + result$cptable[i.min.xerror, "xstd"]
+        i <- 1
+        while (result$cptable[i, "xerror"] > xerror.threshold)
+        {
+            i <- i + 1
+        }
+        result <- prune(result, cp = result$cptable[i, "CP"])
+    }
+
     class(result) <- append("CART", class(result))
 
     result$missing <- missing
@@ -272,6 +288,7 @@ Probabilities.CART <- function(object)
 
 #' @importFrom graphics plot
 #' @importFrom rhtmlSankeyTree SankeyTree
+#' @importFrom rpart plotcp
 #' @export
 print.CART <- function(x, ...)
 {
@@ -300,6 +317,10 @@ print.CART <- function(x, ...)
     else if (x$output == "Prediction-Accuracy Table")
     {
         print(x$confusion)
+    }
+    else if (x$output == "Cross Validation")
+    {
+        plotcp(x, col = 4)
     }
     else
         stop(paste("Unhandled output: ", x$output))

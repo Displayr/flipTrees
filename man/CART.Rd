@@ -5,9 +5,9 @@
 \title{\code{CART} Creats a classification or regression tree.}
 \usage{
 CART(formula, data = NULL, subset = NULL, weights = NULL,
-  output = "Sankey", missing = "Use partial data",
-  method = "recursive.partition", auxiliary.data = NULL,
-  show.labels = FALSE, predictor.level.treatment = "Abbreviated labels",
+  output = "Sankey", missing = "Use partial data", prune = "None",
+  auxiliary.data = NULL, show.labels = FALSE,
+  predictor.level.treatment = "Abbreviated labels",
   outcome.level.treatment = "Full labels", seed = 12321, ...)
 }
 \arguments{
@@ -26,13 +26,14 @@ the name of a variable in \code{data}. It may not be an expression.}
 \item{weights}{An optional vector of sampling weights or the name
 of a variable in \code{data}. It may not be an expression.}
 
-\item{output}{How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, or \code{"Prediction-Accuracy Table"}.}
+\item{output}{How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, \code{"Prediction-Accuracy Table"} or \code{"Cross Validation"}.}
 
 \item{missing}{How missing data is to be treated in the regression. Options are:
 \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
 \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.}
 
-\item{method}{A character string giving the method to use. The only other useful value is "model.frame".}
+\item{prune}{How to prune the tree according to the cross-validated error.  Options are:
+\code{"None"}, \code{"Minimum error"} and \code{"Smallest tree"}.}
 
 \item{auxiliary.data}{A data frame containing additional variables to be used in imputation.}
 
