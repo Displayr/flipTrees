@@ -32,7 +32,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @importFrom flipFormat Labels
 #' @importFrom flipRegression ConfusionMatrix
 #' @importFrom flipU OutcomeName
-#' @importFrom rpart rpart rpart.control prune.rpart
+#' @importFrom rpart rpart rpart.control prune
 #' @importFrom stats na.exclude binomial predict as.formula
 #' @importFrom utils capture.output
 #' @export
