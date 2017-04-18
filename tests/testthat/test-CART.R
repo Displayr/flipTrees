@@ -55,7 +55,7 @@ test_that("Error if missing data",
 for (missing in c("Exclude cases with missing data",
                   "Use partial data",
                   "Imputation (replace missing values with estimates)"))
-    for (type in c("Sankey", "Tree", "Text", "Prediction-Accuracy Table"))
+    for (type in c("Sankey", "Tree", "Text", "Prediction-Accuracy Table", "Cross Validation"))
         test_that(paste(missing, type),
         {
             imputation <- missing == "Imputation (replace missing values with estimates)"
@@ -73,3 +73,12 @@ for (missing in c("Exclude cases with missing data",
             expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100,  weights = bank$ID, output = type, missing = missing))), NA)
         })
 
+
+for (pruning in c("None", "Minimum error", "Smallest tree"))
+    test_that(paste(missing, type),
+        {
+        expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
+                                            subset = bank$ID > 100, weights = bank$ID,
+                                            output = "Sankey", missing = "Exclude cases with missing data",
+                                            prune = pruning))), NA)
+        })
