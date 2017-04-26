@@ -6,7 +6,7 @@
 \usage{
 CART(formula, data = NULL, subset = NULL, weights = NULL,
   output = "Sankey", missing = "Use partial data", prune = "None",
-  auxiliary.data = NULL, show.labels = FALSE,
+  early.stopping = TRUE, auxiliary.data = NULL, show.labels = FALSE,
   predictor.level.treatment = "Abbreviated labels",
   outcome.level.treatment = "Full labels", seed = 12321, ...)
 }
@@ -34,6 +34,9 @@ of a variable in \code{data}. It may not be an expression.}
 
 \item{prune}{How to prune the tree according to the cross-validated error.  Options are:
 \code{"None"}, \code{"Minimum error"} and \code{"Smallest tree"}.}
+
+\item{early.stopping}{Whether or not to stop building the tree early if splits are not decreasing the lack
+of fit sufficiently.}
 
 \item{auxiliary.data}{A data frame containing additional variables to be used in imputation.}
 

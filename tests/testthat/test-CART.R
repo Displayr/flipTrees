@@ -75,10 +75,11 @@ for (missing in c("Exclude cases with missing data",
 
 
 for (pruning in c("None", "Minimum error", "Smallest tree"))
-    test_that(paste(missing, type),
-        {
-        expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
-                                            subset = bank$ID > 100, weights = bank$ID,
-                                            output = "Sankey", missing = "Exclude cases with missing data",
-                                            prune = pruning))), NA)
-        })
+    for (stopping in c(TRUE, FALSE))
+        test_that(paste(missing, type),
+            {
+            expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
+                                                subset = bank$ID > 100, weights = bank$ID,
+                                                output = "Sankey", missing = "Exclude cases with missing data",
+                                                prune = pruning, early.stopping = stopping))), NA)
+            })

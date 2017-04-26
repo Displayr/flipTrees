@@ -18,6 +18,8 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
 #' @param prune How to prune the tree according to the cross-validated error.  Options are:
 #' \code{"None"}, \code{"Minimum error"} and \code{"Smallest tree"}.
+#' @param early.stopping Whether or not to stop building the tree early if splits are not decreasing the lack
+#' of fit sufficiently.
 #' @param auxiliary.data A data frame containing additional variables to be used in imputation.
 #' @param show.labels Shows the variable labels, as opposed to the names, in the outputs, where a
 #' variables label is an attribute (e.g., attr(foo, "label")).
@@ -44,6 +46,7 @@ CART <- function(formula,
                  output = "Sankey",
                  missing = "Use partial data",
                  prune = "None",
+                 early.stopping = TRUE,
                  auxiliary.data = NULL,
                  show.labels = FALSE,
                  predictor.level.treatment = "Abbreviated labels",
@@ -78,12 +81,16 @@ CART <- function(formula,
     estimation.data <- processed.data$estimation.data
     outcome.is.factor <- is.factor(estimation.data[[outcome.name]])
 
+    cp <- ifelse(early.stopping, 0.01, 0)
+    control <- rpart.control(cp = cp)
+
     if (is.null(weights))
-        result <- rpart(formula, data = estimation.data, model = FALSE, ...)
+        result <- rpart(formula, data = estimation.data, model = FALSE, control = control, ...)
     else
     {
         weights <- CalibrateWeight(processed.data$weights)
-        result <- do.call("rpart", list(formula, data = estimation.data, weights = weights, model = FALSE, ...))
+        result <- do.call("rpart", list(formula, data = estimation.data, weights = weights,
+                                        model = FALSE, control = control, ...))
     }
 
     if (prune == "Minimum error")
