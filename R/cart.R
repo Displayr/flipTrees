@@ -300,7 +300,7 @@ Probabilities.CART <- function(object)
 print.CART <- function(x, ...)
 {
     if (nrow(x$frame) == 1)
-        stop("Output tree has one node and no splits. Change the inputs to produce a useful tree.")
+        stop("Output tree has one node and no splits. Either change the input data or relax early stopping or pruning to produce a larger tree.")
 
     if (x$output == "Sankey")
     {
