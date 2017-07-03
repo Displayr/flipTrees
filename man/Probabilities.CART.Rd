@@ -12,4 +12,3 @@ Probabilities.CART(object)
 \description{
 Probabilities.CART
 }
-

@@ -58,4 +58,3 @@ and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev}
 \details{
 Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
 }
-

@@ -40,4 +40,3 @@ of y-value or an equal number of points.}
 \code{treeFrameToList} Converts a \code{\link{tree}} into a format usable in
 a sankeytree.
 }
-

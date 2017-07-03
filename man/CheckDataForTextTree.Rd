@@ -24,4 +24,3 @@ columns are terms from the term document matrix.}
 \code{CheckDataForTextTree} Check that there are enough cases to compute the
 tree from the term document matrix.
 }
-

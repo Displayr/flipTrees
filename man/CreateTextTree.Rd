@@ -25,4 +25,3 @@ which shows the outcome variable next to the text.
 \description{
 \code{CreateTextTree} Generate a predictive tree from an outcome variable and a tree.
 }
-

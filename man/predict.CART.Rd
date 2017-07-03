@@ -21,4 +21,3 @@ Predicts values for numeric outcomes and group membership for categories based o
 and a fitted CART \code{object}.  A value (which may be NA) is returned for every instance
 in \code{newdata} including those with missing data. NA is returned for cases with unfitted factor levels.
 }
-
