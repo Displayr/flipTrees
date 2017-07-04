@@ -287,9 +287,15 @@ Probabilities.CART <- function(object)
 
     class(object) <- "rpart"
     m <- predict(object, type = "matrix", newdata = object$model, na.action = na.pass)
-    lvls <- levels(object$model[[OutcomeName(object$terms)]])
-    prob <- m[, (length(lvls) + 2):(2 * length(lvls) + 1)]
-    colnames(prob) <- lvls
+
+    all.levels <- levels(object$model[[OutcomeName(object$terms)]])
+    fitted.levels <- levels(droplevels(object$model[[OutcomeName(object$terms)]]))
+    empty.levels <- all.levels[!all.levels %in% fitted.levels]
+    n.levels <- length(fitted.levels)
+
+    prob <- m[, (n.levels + 2):(2 * n.levels + 1)]
+    prob <- cbind(prob, matrix(0, nrow = nrow(prob), ncol = length(empty.levels)))
+    colnames(prob) <- c(fitted.levels, empty.levels)
     prob
 }
 

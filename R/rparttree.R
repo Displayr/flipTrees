@@ -49,9 +49,12 @@ rPartToTreeFrame <- function(obj)
     if (!is.null(frame$yval2))
     {
         fitted.levels <- levels(droplevels(outcome.var))
+        all.levels <- levels(outcome.var)
         n.levels <- length(fitted.levels)
         yprob <- frame$yval2[, (n.levels + 2):(2 * n.levels + 1)]
-        colnames(yprob) <- fitted.levels
+        empty.levels <- all.levels[!all.levels %in% fitted.levels]
+        yprob <- cbind(yprob, matrix(0, nrow = nrow(yprob), ncol = length(empty.levels)))
+        colnames(yprob) <- c(fitted.levels, empty.levels)
         frame$yprob <- yprob
     }
     frame

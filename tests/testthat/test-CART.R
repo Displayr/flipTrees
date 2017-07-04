@@ -6,6 +6,7 @@ data(cola, package = "flipExampleData")
 colas <- cola
 data(bank, package = "flipExampleData")
 bank$fOverall <- factor(bank$Overall)
+levels(bank$fOverall) <- c(levels(bank$fOverall), "8")    # add an empty factor level
 
 test_that("saving variables",
     {
@@ -24,7 +25,7 @@ test_that("rpart prediction",
         expect_equal(unname(predict(z)[1]), 4.258064516129032)
     })
 
-z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100)
+z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100))
 test_that("rpart Probabilities",
     {
         expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2444444444444445)
