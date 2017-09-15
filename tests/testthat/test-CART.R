@@ -50,6 +50,8 @@ test_that("Error if missing data",
     expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = TRUE,  weights = bank$ID, output = type, missing = "Error if missing data")), (throws_error()))
     # weight and filter
     expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100,  weights = bank$ID, missing = "Error if missing")), (throws_error()))
+    # DS-1525, subset creates empty level of outcome
+    expect_error(suppressWarnings(CART(Q32 ~ Q2 + Q3, data = colas, subset = colas$Q32 != "Don't know")), NA)
 })
 
 
