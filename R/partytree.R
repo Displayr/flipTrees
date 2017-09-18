@@ -1,5 +1,6 @@
 #' @importFrom partykit party
 #' @importFrom flipU OutcomeName
+#' @importFrom stats formula
 treeFrameToParty <- function(frame, xlevels, model, terms, labels)
 {
     df <- data.frame()
@@ -43,7 +44,8 @@ treeFrameToParty <- function(frame, xlevels, model, terms, labels)
     })
 
     yval <- frame$yval
-    outcome.name <- truncateLabel(if (!is.null(labels)) unname(labels[OutcomeName(terms)]) else OutcomeName(terms), 10)
+    outcome.name <- truncateLabel(if (!is.null(labels)) unname(labels[OutcomeName(formula(terms))])
+                                  else OutcomeName(formula(terms)), 10)
 
     nd <- getPartyNodes(1L, 1L, not.leaf, yval, numeric.breaks, numeric.breaks.reversed, outcome.name)
     party(nd$node, df)

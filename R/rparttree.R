@@ -1,4 +1,5 @@
 #' @importFrom flipU OutcomeName
+#' @importFrom stats formula
 rPartToTreeFrame <- function(obj)
 {
     frame <- obj$frame
@@ -41,10 +42,7 @@ rPartToTreeFrame <- function(obj)
     }
     frame$splits <- splits
 
-    formula <- obj$terms
-    # remove "terms" class which confuses formula.tools used by OutcomeName
-    class(formula) <- "formula"
-    outcome.var <- obj$model[[OutcomeName(formula)]]
+    outcome.var <- obj$model[[OutcomeName(formula(obj$terms))]]
 
     if (is.factor(outcome.var))
         frame$yval <- levels(outcome.var)[frame$yval]
