@@ -41,7 +41,10 @@ rPartToTreeFrame <- function(obj)
     }
     frame$splits <- splits
 
-    outcome.var <- obj$model[[OutcomeName(obj$terms)]]
+    formula <- obj$terms
+    # remove "terms" class which confuses formula.tools used by OutcomeName
+    class(formula) <- "formula"
+    outcome.var <- obj$model[[OutcomeName(formula)]]
 
     if (is.factor(outcome.var))
         frame$yval <- levels(outcome.var)[frame$yval]
