@@ -31,6 +31,11 @@ test_that("rpart Probabilities",
         expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2444444444444445)
     })
 
+z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100))
+test_that("dot in formula",
+          {
+              expect_error(CART(yesno ~ ., data = spam7), NA)
+          })
 
 # Reading in the libraries so that their outputs do not pollute the test results.
 library(mice)
