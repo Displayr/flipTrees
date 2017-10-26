@@ -2,7 +2,7 @@
 % Please edit documentation in R/cart.R
 \name{CART}
 \alias{CART}
-\title{\code{CART} Creats a classification or regression tree.}
+\title{Creates a classification or regression tree.}
 \usage{
 CART(formula, data = NULL, subset = NULL, weights = NULL,
   output = "Sankey", missing = "Use partial data", prune = "None",
@@ -53,7 +53,7 @@ variables label is an attribute (e.g., attr(foo, "label")).}
 and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev}
 }
 \description{
-\code{CART} Creats a classification or regression tree.
+Creates a classification or regression tree.
 }
 \details{
 Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}

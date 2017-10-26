@@ -1,6 +1,7 @@
 globalVariables(c(".weight.1232312", ".estimation.data"))
 
-#' \code{CART} Creats a classification or regression tree.
+#' Creates a classification or regression tree.
+#'
 #' @param formula A formula expression. The left-hand-side (response) should
 #' be either a numerical vector when a regression tree will be fitted or
 #' a factor, when a classification tree is produced. The right-hand-side should
