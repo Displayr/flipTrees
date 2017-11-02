@@ -280,6 +280,7 @@ predict.CART <- function(object, seed = 1232, newdata = object$model, ...)
 #'
 #' @param object The \code{CART} object whose values are to be predicted.
 #' @importFrom stats na.pass
+#' @importFrom flipU OutcomeName
 #' @export
 Probabilities.CART <- function(object)
 {
@@ -289,8 +290,11 @@ Probabilities.CART <- function(object)
     class(object) <- "rpart"
     m <- predict(object, type = "matrix", newdata = object$model, na.action = na.pass)
 
-    all.levels <- levels(object$model[[OutcomeName(object$terms)]])
-    fitted.levels <- levels(droplevels(object$model[[OutcomeName(object$terms)]]))
+    terms.as.formula <- object$terms
+    class(terms.as.formula) <- "formula"
+    outcome.variable <- object$model[[OutcomeName(terms.as.formula)]]
+    all.levels <- levels(outcome.variable)
+    fitted.levels <- levels(droplevels(outcome.variable))
     empty.levels <- all.levels[!all.levels %in% fitted.levels]
     n.levels <- length(fitted.levels)
 
