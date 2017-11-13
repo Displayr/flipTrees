@@ -2,34 +2,52 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 
 #' Creates a classification or regression tree.
 #'
-#' @param formula A formula expression. The left-hand-side (response) should
-#' be either a numerical vector when a regression tree will be fitted or
-#' a factor, when a classification tree is produced. The right-hand-side should
-#' be a series of numeric or factor variables separated by \code{+}; there should be
-#' no interaction terms. Both \code{.} and \code{-} are allowed: regression trees can have
-#' offset terms
-#' @param data A data frame in which to preferentially interpret formula, weights and subset
-#' @param subset An optional vector specifying a subset of observations to be used in the fitting process or
-#' the name of a variable in \code{data}. It may not be an expression.
+#' @param formula A formula expression. The left-hand-side (response)
+#'     should be either a numerical vector when a regression tree will
+#'     be fitted or a factor, when a classification tree is
+#'     produced. The right-hand-side should be a series of numeric or
+#'     factor variables separated by \code{+}; there should be no
+#'     interaction terms. Both \code{.} and \code{-} are allowed:
+#'     regression trees can have offset terms
+#' @param data A data frame in which to preferentially interpret
+#'     formula, weights and subset
+#' @param subset An optional vector specifying a subset of
+#'     observations to be used in the fitting process or the name of a
+#'     variable in \code{data}. It may not be an expression.
 #' @param weights An optional vector of sampling weights or the name
-#' of a variable in \code{data}. It may not be an expression.
-#' @param output How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, \code{"Prediction-Accuracy Table"} or \code{"Cross Validation"}.
-#' @param missing How missing data is to be treated in the regression. Options are:
-#' \code{"Error if missing data"}, \code{"Exclude cases with missing data"},
-#' \code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.
-#' @param prune How to prune the tree according to the cross-validated error.  Options are:
-#' \code{"None"}, \code{"Minimum error"} and \code{"Smallest tree"}.
-#' @param early.stopping Whether or not to stop building the tree early if splits are not decreasing the lack
-#' of fit sufficiently.
-#' @param auxiliary.data A data frame containing additional variables to be used in imputation.
-#' @param show.labels Shows the variable labels, as opposed to the names, in the outputs, where a
-#' variables label is an attribute (e.g., attr(foo, "label")).
-#' @param predictor.level.treatment How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
-#' @param outcome.level.treatment How outcome factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.
+#'     of a variable in \code{data}. It may not be an expression.
+#' @param output How the tree is represented: \code{"Sankey"},
+#'     \code{"Tree"}, \code{"Text"},
+#'     \code{"Prediction-Accuracy Table"} or
+#'     \code{"Cross Validation"}.
+#' @param missing How missing data is to be treated in the
+#'     regression. Options are: \code{"Error if missing data"},
+#'     \code{"Exclude cases with missing data"},
+#'     \code{"Use partial data"},and
+#'     \code{"Imputation (replace missing values with estimates)"}.
+#' @param prune How to prune the tree according to the cross-validated
+#'     error.  Options are: \code{"None"}, \code{"Minimum error"} and
+#'     \code{"Smallest tree"}.
+#' @param early.stopping Whether or not to stop building the tree
+#'     early if splits are not decreasing the lack of fit
+#'     sufficiently.
+#' @param auxiliary.data A data frame containing additional variables
+#'     to be used in imputation.
+#' @param show.labels Shows the variable labels, as opposed to the
+#'     names, in the outputs, where a variables label is an attribute
+#'     (e.g., attr(foo, "label")).
+#' @param predictor.level.treatment How predictor factor labels are
+#'     displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
+#'     \code{"Full labels"}.
+#' @param outcome.level.treatment How outcome factor labels are
+#'     displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
+#'     \code{"Full labels"}.
 #' @param seed The random number seed.
 #' @param ... Other arguments to be supplied to \code{\link{rpart}}.
-#' and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev
-#' @details Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
+#'     and \code{\link{tree.control}}. Normally used for mincut,
+#'     minsize or mindev
+#' @details Creates a \code{\link{tree}} and plots it as a
+#'     \code{\link{SankeyTree}}
 #' @importFrom flipData GetData CalibrateWeight
 #' @importFrom flipData EstimationData
 #' @importFrom flipFormat Labels
@@ -290,9 +308,7 @@ Probabilities.CART <- function(object)
     class(object) <- "rpart"
     m <- predict(object, type = "matrix", newdata = object$model, na.action = na.pass)
 
-    terms.as.formula <- object$terms
-    class(terms.as.formula) <- "formula"
-    outcome.variable <- object$model[[OutcomeName(terms.as.formula)]]
+    outcome.variable <- object$model[[OutcomeName(object$terms)]]
     all.levels <- levels(outcome.variable)
     fitted.levels <- levels(droplevels(outcome.variable))
     empty.levels <- all.levels[!all.levels %in% fitted.levels]
