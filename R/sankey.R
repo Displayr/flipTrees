@@ -1,4 +1,4 @@
-#' \code{treeFrameToList} Converts a \code{\link{tree}} into a format usable in
+#' \code{treeFrameToList} Converts a \code{tree} into a format usable in
 #' a sankeytree.
 #'
 #' @param frame The tree frame.

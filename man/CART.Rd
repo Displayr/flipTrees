@@ -11,50 +11,68 @@ CART(formula, data = NULL, subset = NULL, weights = NULL,
   outcome.level.treatment = "Full labels", seed = 12321, ...)
 }
 \arguments{
-\item{formula}{A formula expression. The left-hand-side (response) should
-be either a numerical vector when a regression tree will be fitted or
-a factor, when a classification tree is produced. The right-hand-side should
-be a series of numeric or factor variables separated by \code{+}; there should be
-no interaction terms. Both \code{.} and \code{-} are allowed: regression trees can have
-offset terms}
+\item{formula}{A formula expression. The left-hand-side (response)
+should be either a numerical vector when a regression tree will
+be fitted or a factor, when a classification tree is
+produced. The right-hand-side should be a series of numeric or
+factor variables separated by \code{+}; there should be no
+interaction terms. Both \code{.} and \code{-} are allowed:
+regression trees can have offset terms}
 
-\item{data}{A data frame in which to preferentially interpret formula, weights and subset}
+\item{data}{A data frame in which to preferentially interpret
+formula, weights and subset}
 
-\item{subset}{An optional vector specifying a subset of observations to be used in the fitting process or
-the name of a variable in \code{data}. It may not be an expression.}
+\item{subset}{An optional vector specifying a subset of
+observations to be used in the fitting process or the name of a
+variable in \code{data}. It may not be an expression.}
 
 \item{weights}{An optional vector of sampling weights or the name
 of a variable in \code{data}. It may not be an expression.}
 
-\item{output}{How the tree is represented: \code{"Sankey"}, \code{"Tree"}, \code{"Text"}, \code{"Prediction-Accuracy Table"} or \code{"Cross Validation"}.}
+\item{output}{How the tree is represented: \code{"Sankey"},
+\code{"Tree"}, \code{"Text"},
+\code{"Prediction-Accuracy Table"} or
+\code{"Cross Validation"}.}
 
-\item{missing}{How missing data is to be treated in the regression. Options are:
-\code{"Error if missing data"}, \code{"Exclude cases with missing data"},
-\code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.}
+\item{missing}{How missing data is to be treated in the
+regression. Options are: \code{"Error if missing data"},
+\code{"Exclude cases with missing data"},
+\code{"Use partial data"},and
+\code{"Imputation (replace missing values with estimates)"}.}
 
-\item{prune}{How to prune the tree according to the cross-validated error.  Options are:
-\code{"None"}, \code{"Minimum error"} and \code{"Smallest tree"}.}
+\item{prune}{How to prune the tree according to the cross-validated
+error.  Options are: \code{"None"}, \code{"Minimum error"} and
+\code{"Smallest tree"}.}
 
-\item{early.stopping}{Whether or not to stop building the tree early if splits are not decreasing the lack
-of fit sufficiently.}
+\item{early.stopping}{Whether or not to stop building the tree
+early if splits are not decreasing the lack of fit
+sufficiently.}
 
-\item{auxiliary.data}{A data frame containing additional variables to be used in imputation.}
+\item{auxiliary.data}{A data frame containing additional variables
+to be used in imputation.}
 
-\item{show.labels}{Shows the variable labels, as opposed to the names, in the outputs, where a
-variables label is an attribute (e.g., attr(foo, "label")).}
+\item{show.labels}{Shows the variable labels, as opposed to the
+names, in the outputs, where a variables label is an attribute
+(e.g., attr(foo, "label")).}
 
-\item{predictor.level.treatment}{How predictor factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.}
+\item{predictor.level.treatment}{How predictor factor labels are
+displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
+\code{"Full labels"}.}
 
-\item{outcome.level.treatment}{How outcome factor labels are displayed: \code{"Letters"}, \code{"Abbreviated labels"} or \code{"Full labels"}.}
+\item{outcome.level.treatment}{How outcome factor labels are
+displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
+\code{"Full labels"}.}
 
 \item{seed}{The random number seed.}
 
 \item{...}{Other arguments to be supplied to \code{\link{rpart}}.
-and \code{\link{tree.control}}. Normally used for mincut, minsize or mindev}
+Normally used for mincut,
+minsize or mindev}
 }
 \description{
 Creates a classification or regression tree.
 }
 \details{
-Creates a \code{\link{tree}} and plots it as a \code{\link{SankeyTree}}
+Creates an \code{\link[rpart]{rpart.object}} tree and plots it as a
+    \code{\link{SankeyTree}}
 }

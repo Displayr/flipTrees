@@ -44,9 +44,9 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #'     \code{"Full labels"}.
 #' @param seed The random number seed.
 #' @param ... Other arguments to be supplied to \code{\link{rpart}}.
-#'     and \code{\link{tree.control}}. Normally used for mincut,
+#'     Normally used for mincut,
 #'     minsize or mindev
-#' @details Creates a \code{\link{tree}} and plots it as a
+#' @details Creates an \code{\link[rpart]{rpart.object}} tree and plots it as a
 #'     \code{\link{SankeyTree}}
 #' @importFrom flipData GetData CalibrateWeight
 #' @importFrom flipData EstimationData

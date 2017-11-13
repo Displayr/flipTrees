@@ -2,7 +2,7 @@
 % Please edit documentation in R/sankey.R
 \name{treeFrameToList}
 \alias{treeFrameToList}
-\title{\code{treeFrameToList} Converts a \code{\link{tree}} into a format usable in
+\title{\code{treeFrameToList} Converts a \code{tree} into a format usable in
 a sankeytree.}
 \usage{
 treeFrameToList(frame, xlevels, model, assigned, labels,
@@ -37,6 +37,6 @@ transition.}
 of y-value or an equal number of points.}
 }
 \description{
-\code{treeFrameToList} Converts a \code{\link{tree}} into a format usable in
+\code{treeFrameToList} Converts a \code{tree} into a format usable in
 a sankeytree.
 }
