@@ -128,7 +128,7 @@ CART <- function(formula,
         result <- prune(result, cp = result$cptable[i, "CP"])
     }
 
-    class(result) <- append("CART", class(result))
+    class(result) <- c("CART", "MachineLearning", class(result))
 
     result$missing <- missing
     result$model <- data

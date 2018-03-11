@@ -16,9 +16,11 @@ columns are terms from the term document matrix.}
 
 \item{subset}{An option vector describing the subset of rows from \code{data} that are to be used to generate the tree.}
 
-\item{missing}{How missing data is to be treated in the regression. Options are:
-\code{"Error if missing data"}, \code{"Exclude cases with missing data"},
-\code{"Use partial data"},and \code{"Imputation (replace missing values with estimates)"}.}
+\item{missing}{How missing data is to be treated in the
+regression. Options are: \code{"Error if missing data"},
+\code{"Exclude cases with missing data"},
+\code{"Use partial data"},and
+\code{"Imputation (replace missing values with estimates)"}.}
 }
 \description{
 \code{CheckDataForTextTree} Check that there are enough cases to compute the
