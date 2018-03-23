@@ -189,28 +189,30 @@ getShortenedLevels <- function(lvls)
     lvls <- gsub("[^a-zA-Z0-9]", " ", lvls)
 
     # replace first letter of all words with upper case
-    lvls <- gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", lvls, perl=TRUE)
+    lvls <- gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", lvls, perl = TRUE)
 
     # get the first two or three letters of the words
     text.hash = hash()
-    node.texts <- rep("",length(lvls))
+    node.texts <- rep("", length(lvls))
     for (j in 1:length(lvls)) {
         text <- lvls[j]
         text.len <- sapply(gregexpr("[[:alpha:]]+", text), function(x) sum(x > 0)) # count number of words
-        if (text.len == 1) {
+        if (text.len == 0) {
+            node.text <- "X"
+        } else if (text.len == 1) {
             nchars <- nchar(text)
-            node.text <- ifelse(nchars > 3, substr(text,1,3), text) # one word
+            node.text <- ifelse(nchars > 3, substr(text, 1, 3), text) # one word
         } else {
             text1 <- strsplit(text," ")[[1]]     # more than one word
             node.text <- rep("",length(text1))
             nchars <- nchar(text1)
             for(l in 1:length(nchars)) {
-                node.text[l] = ifelse(nchars[l] > 2, substr(text1[l],1,2), text1[l])
+                node.text[l] = ifelse(nchars[l] > 2, substr(text1[l], 1, 2), text1[l])
             }
         }
         node.text <- paste(node.text, collapse = "")
         if (!has.key(node.text, text.hash)) {
-            .set(text.hash, keys=node.text, values=TRUE)
+            .set(text.hash, keys = node.text, values = TRUE)
         } else {
             node.text <- .appendNum(node.text, text.hash, 1)
         }
