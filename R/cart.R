@@ -167,8 +167,9 @@ getNodeHash <- function(xlevels)
     features.hash = hash(keys = names(xlevels.fac), values = 1:length(xlevels.fac))
     xlevels.hash = c()
     for(node.texts in xlevels.fac) {
-        # this approach will fail if more than 26 levels
-        h = hash(keys = letters[1:length(node.texts)], values = node.texts)
+        extended.letters <- extendLetters(length(node.texts))
+        lttrs <- extended.letters[1:length(node.texts)]
+        h = hash(keys = lttrs[1:length(node.texts)], values = node.texts)
         xlevels.hash = c(xlevels.hash, h)
     }
     result = list(features.hash, xlevels.hash)
@@ -262,6 +263,16 @@ textTreeWithLabels <- function(text, labels, model)
 
     result
 }
+
+# extend letters to be of length at least n by suffixing with integers
+extendLetters <- function(n) {
+    if (n <= 26)
+        return(letters)
+    alphabets <- (n %/% 26) + 1
+    extended.letters <- paste0(rep(letters, alphabets), rep(seq(alphabets), each = 26))
+    return(extended.letters)
+}
+
 
 #' predict.CART
 #'

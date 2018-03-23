@@ -16,9 +16,8 @@ rPartToTreeFrame <- function(obj)
         {
             if (is.factor(obj$model[[var.name]]))
             {
-                if (ncol(obj$csplit) > length(letters))
-                    stop("There are too many levels in the factor to be represented by letters.")
-                lttrs <- letters[1:ncol(obj$csplit)]
+                extended.letters <- extendLetters(length(levels(obj$model[[var.name]])))
+                lttrs <- extended.letters[1:length(levels(obj$model[[var.name]]))]
                 levels.split <- obj$csplit[obj$splits[c, index.i], ]
                 splits[i, 1] <- paste0(":", paste(lttrs[levels.split == 1], collapse = ""))
                 splits[i, 2] <- paste0(":", paste(lttrs[levels.split == 3], collapse = ""))

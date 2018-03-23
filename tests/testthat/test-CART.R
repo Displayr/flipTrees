@@ -118,3 +118,9 @@ test_that("CART: dot in formula", {
     cart2 <- CART(yesno ~ crl.tot + dollar + bang + money + n000 + make, data = spam7)
     expect_equal(cart, cart2)
 })
+
+test_that("CART: many levels", {
+    many.levels <- replicate(100, paste(sample(LETTERS, 2), collapse = ""))
+    spam7$new <- as.factor(sample(many.levels, nrow(spam7), replace = TRUE))
+    expect_error(CART(yesno ~ ., data = spam7, early.stopping = FALSE), NA)
+})
