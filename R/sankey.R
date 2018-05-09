@@ -19,7 +19,7 @@
 #'   of y-value or an equal number of points.
 #' @importFrom stats quantile
 #' @importFrom graphics hist
-#' @importFrom hash has.key .set values hash clear
+#' @importFrom hash has.key values hash clear
 #' @importFrom flipFormat FormatAsReal FormatAsPercent
 #' @importFrom colorspace diverge_hsv
 #' @importFrom grDevices rgb rgb2hsv col2rgb hsv

@@ -212,7 +212,7 @@ getShortenedLevels <- function(lvls)
         }
         node.text <- paste(node.text, collapse = "")
         if (!has.key(node.text, text.hash)) {
-            .set(text.hash, keys = node.text, values = TRUE)
+            text.hash[[node.text]] = TRUE
         } else {
             node.text <- .appendNum(node.text, text.hash, 1)
         }
