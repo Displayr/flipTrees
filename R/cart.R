@@ -196,7 +196,7 @@ getShortenedLevels <- function(lvls)
     node.texts <- rep("", length(lvls))
     for (j in 1:length(lvls)) {
         text <- lvls[j]
-        text.len <- sapply(gregexpr("[[:alpha:]]+", text), function(x) sum(x > 0)) # count number of words
+        text.len <- sapply(gregexpr("[[:alnum:]]+", text), function(x) sum(x > 0)) # count number of words
         if (text.len == 0) {
             node.text <- "X"
         } else if (text.len == 1) {
@@ -219,7 +219,7 @@ getShortenedLevels <- function(lvls)
         node.texts[j] <- node.text
     }
     clear(text.hash)
-    node.texts
+    make.unique(node.texts)
 }
 
 shortenFactorLevels <- function(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
