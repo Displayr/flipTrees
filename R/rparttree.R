@@ -29,11 +29,11 @@ rPartToTreeFrame <- function(obj)
                 if (obj$splits[c, ncat.i] < 0)
                 {
                     splits[i, 1] <- paste0("<", break.val)
-                    splits[i, 2] <- paste0(">", break.val)
+                    splits[i, 2] <- paste0(">=", break.val)
                 }
                 else
                 {
-                    splits[i, 1] <- paste0(">", break.val)
+                    splits[i, 1] <- paste0(">=", break.val)
                     splits[i, 2] <- paste0("<", break.val)
                 }
             }
