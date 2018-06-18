@@ -8,7 +8,8 @@ CART(formula, data = NULL, subset = NULL, weights = NULL,
   output = "Sankey", missing = "Use partial data", prune = "None",
   early.stopping = TRUE, auxiliary.data = NULL, show.labels = FALSE,
   predictor.level.treatment = "Abbreviated labels",
-  outcome.level.treatment = "Full labels", seed = 12321, ...)
+  outcome.level.treatment = "Full labels", decimals = NULL, seed = 12321,
+  ...)
 }
 \arguments{
 \item{formula}{A formula expression. The left-hand-side (response)
@@ -62,6 +63,9 @@ displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
 \item{outcome.level.treatment}{How outcome factor labels are
 displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
 \code{"Full labels"}.}
+
+\item{decimals}{The number of decimal places to show when \code{"output"}
+is \code{"Prediction-Accuracy Table"}.}
 
 \item{seed}{The random number seed.}
 

@@ -42,6 +42,8 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @param outcome.level.treatment How outcome factor labels are
 #'     displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
 #'     \code{"Full labels"}.
+#' @param decimals The number of decimal places to show when \code{"output"}
+#'     is \code{"Prediction-Accuracy Table"}.
 #' @param seed The random number seed.
 #' @param ... Other arguments to be supplied to \code{\link{rpart}}.
 #'     Normally used for mincut,
@@ -70,6 +72,7 @@ CART <- function(formula,
                  show.labels = FALSE,
                  predictor.level.treatment = "Abbreviated labels",
                  outcome.level.treatment = "Full labels",
+                 decimals = NULL,
                  seed = 12321,
                  ...)
 {
@@ -148,7 +151,7 @@ CART <- function(formula,
     else
         result$outcome.label <- outcome.name
 
-    result$confusion <- ConfusionMatrix(result, subset, unfiltered.weights)
+    result$confusion <- ConfusionMatrix(result, subset, unfiltered.weights, decimals = decimals)
 
     return(result)
 }
