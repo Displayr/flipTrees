@@ -142,6 +142,8 @@ CART <- function(formula,
     if (is.null(subset))
         subset <- rep(TRUE, nrow(data))
     result$subset <- subset
+    result$weights <- weights
+    result$formula <- formula
 
     if (result$show.labels <- show.labels)
     {
@@ -295,7 +297,7 @@ extendLetters <- function(n) {
 predict.CART <- function(object, seed = 1232, newdata = object$model, ...)
 {
     set.seed(seed)
-    newdata = CheckPredictionVariables(object, newdata)
+    newdata <- CheckPredictionVariables(object, newdata)
     class(object) <- "rpart"
     type <- ifelse(object$outcome.numeric, "vector", "class")
 
