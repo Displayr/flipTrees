@@ -32,8 +32,9 @@ of a variable in \code{data}. It may not be an expression.}
 
 \item{output}{How the tree is represented: \code{"Sankey"},
 \code{"Tree"}, \code{"Text"},
-\code{"Prediction-Accuracy Table"} or
-\code{"Cross Validation"}.}
+\code{"Prediction-Accuracy Table"},
+\code{"Cross Validation"} or
+\code{"Decision Rules"}}
 
 \item{missing}{How missing data is to be treated in the
 regression. Options are: \code{"Error if missing data"},

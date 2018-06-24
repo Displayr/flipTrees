@@ -18,8 +18,9 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #'     of a variable in \code{data}. It may not be an expression.
 #' @param output How the tree is represented: \code{"Sankey"},
 #'     \code{"Tree"}, \code{"Text"},
-#'     \code{"Prediction-Accuracy Table"} or
-#'     \code{"Cross Validation"}.
+#'     \code{"Prediction-Accuracy Table"},
+#'     \code{"Cross Validation"} or
+#'     \code{"Decision Rules"}
 #' @param missing How missing data is to be treated in the
 #'     regression. Options are: \code{"Error if missing data"},
 #'     \code{"Exclude cases with missing data"},
@@ -341,6 +342,7 @@ Probabilities.CART <- function(object)
 #' @importFrom graphics plot
 #' @importFrom rhtmlSankeyTree SankeyTree
 #' @importFrom rpart plotcp
+#' @importFrom rattle asRules
 #' @export
 print.CART <- function(x, ...)
 {
@@ -373,6 +375,10 @@ print.CART <- function(x, ...)
     else if (x$output == "Cross Validation")
     {
         plotcp(x, col = 4)
+    }
+    else if (x$output == "Decision Rules")
+    {
+        asRules(x)
     }
     else
         stop(paste("Unhandled output: ", x$output))
