@@ -376,10 +376,10 @@ print.CART <- function(x, ...)
     {
         plotcp(x, col = 4)
     }
-    else if (x$output == "Decision Rules")
-    {
-        asRules(x)
-    }
+    #else if (x$output == "Decision Rules")
+    #{
+    #    asRules(x)
+    #}
     else
         stop(paste("Unhandled output: ", x$output))
 }
