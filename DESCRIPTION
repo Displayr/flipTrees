@@ -13,7 +13,6 @@ Suggests:
     flipExampleData,
     DAAG
 Imports:
-    rattle,
     rpart,
     partykit,
     flipData,

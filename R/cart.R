@@ -342,7 +342,6 @@ Probabilities.CART <- function(object)
 #' @importFrom graphics plot
 #' @importFrom rhtmlSankeyTree SankeyTree
 #' @importFrom rpart plotcp
-#' @importFrom rattle asRules
 #' @export
 print.CART <- function(x, ...)
 {
@@ -376,10 +375,10 @@ print.CART <- function(x, ...)
     {
         plotcp(x, col = 4)
     }
-    else if (x$output == "Decision Rules")
-    {
-        asRules(x)
-    }
+    #else if (x$output == "Decision Rules")
+    #{
+    #    asRules(x)
+    #}
     else
         stop(paste("Unhandled output: ", x$output))
 }
