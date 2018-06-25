@@ -61,25 +61,29 @@ parseNumericSplitsText <- function(t)
 
 factorSplitsLabel <- function(t, levels.hash)
 {
-    labels <- character(nchar(t))
+    split.text <- splitNodeText(t)
+    labels <- sapply(split.text, function(x) levels.hash[[x]])
+    paste(labels, collapse = ", ")
+}
+
+splitNodeText <- function(text)
+{
+    splits <- character(nchar(text))
     prev <- NULL
 
-    for (i in 2:nchar(t))
+    for (i in 2:nchar(text))
     {
-        c <- substr(t, i, i)
+        c <- substr(text, i, i)
         if (grepl("[[:lower:]]", c))
         {
             if (!is.null(prev))
-            {
-                ch <- substr(t, prev, i - 1)
-                labels[i - 1] <- levels.hash[[ch]]
-            }
+                splits[i - 1] <- substr(text, prev, i - 1)
             prev <- i
         }
     }
-    labels[nchar(t)] <- levels.hash[[substr(t, prev, nchar(t))]]
-
-    paste(labels, collapse = ", ")
+    splits[nchar(text)] <- substr(text, prev, nchar(text))
+    splits <- splits[splits != ""]
+    return(splits)
 }
 
 #' @importFrom partykit partynode partysplit
