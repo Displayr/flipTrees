@@ -342,7 +342,6 @@ Probabilities.CART <- function(object)
 #' @importFrom graphics plot
 #' @importFrom rhtmlSankeyTree SankeyTree
 #' @importFrom rpart plotcp
-#' @importFrom rattle asRules
 #' @export
 print.CART <- function(x, ...)
 {
