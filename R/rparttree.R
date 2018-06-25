@@ -16,7 +16,7 @@ rPartToTreeFrame <- function(obj)
         {
             if (is.factor(obj$model[[var.name]]))
             {
-                n.levels <- nlevels(factor(obj$model[[var.name]][obj$subset]))
+                n.levels <- length(attr(obj, "xlevels")[[var.name]])
                 extended.letters <- extendLetters(n.levels)
                 lttrs <- extended.letters[1:n.levels]
                 levels.split <- obj$csplit[obj$splits[c, index.i], ]
