@@ -120,7 +120,7 @@ test_that("CART: dot in formula", {
 })
 
 test_that("CART: many levels", {
-    many.levels <- replicate(100, paste(sample(LETTERS, 2), collapse = ""))
+    many.levels <- replicate(400, paste(sample(LETTERS, 2), collapse = ""))
     spam7$new <- as.factor(sample(many.levels, nrow(spam7), replace = TRUE))
     expect_error(CART(yesno ~ ., data = spam7, early.stopping = FALSE), NA)
 })

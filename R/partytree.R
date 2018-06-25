@@ -61,22 +61,24 @@ parseNumericSplitsText <- function(t)
 
 factorSplitsLabel <- function(t, levels.hash)
 {
-    labels <- character(length(t) - 1)
+    labels <- character(nchar(t))
+    prev <- NULL
 
-    if (nchar(t) == 2 || is.na(suppressWarnings(as.numeric(substr(t, 3, 3)))))
+    for (i in 2:nchar(t))
     {
-        for (i in 2:nchar(t))
+        c <- substr(t, i, i)
+        if (grepl("[[:lower:]]", c))
         {
-            ch <- substr(t, i, i)
-            labels[i - 1] <- levels.hash[[ch]]
-        }
-    } else { # 2 characters
-        for (i in seq(2, nchar(t), 2))
-        {
-            ch <- substr(t, i, i + 1)
-            labels[i - 1] <- levels.hash[[ch]]
+            if (!is.null(prev))
+            {
+                ch <- substr(t, prev, i - 1)
+                labels[i - 1] <- levels.hash[[ch]]
+            }
+            prev <- i
         }
     }
+    labels[nchar(t)] <- levels.hash[[substr(t, prev, nchar(t))]]
+
     paste(labels, collapse = ", ")
 }
 
