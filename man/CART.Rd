@@ -8,8 +8,8 @@ CART(formula, data = NULL, subset = NULL, weights = NULL,
   output = "Sankey", missing = "Use partial data", prune = "None",
   early.stopping = TRUE, auxiliary.data = NULL, show.labels = FALSE,
   predictor.level.treatment = "Abbreviated labels",
-  outcome.level.treatment = "Full labels", decimals = NULL, seed = 12321,
-  ...)
+  outcome.level.treatment = "Full labels", decimals = NULL,
+  seed = 12321, ...)
 }
 \arguments{
 \item{formula}{A formula expression. The left-hand-side (response)

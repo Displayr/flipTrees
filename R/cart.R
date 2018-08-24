@@ -137,7 +137,7 @@ CART <- function(formula,
     result$missing <- missing
     result$model <- data
     result$sample.description <- processed.data$description
-    result$outcome.numeric <- !outcome.is.factor
+    result$numeric.outcome <- !outcome.is.factor
     result$output <- output
     result$outcome.name <- outcome.name
     if (is.null(subset))
@@ -300,7 +300,7 @@ predict.CART <- function(object, seed = 1232, newdata = object$model, ...)
     set.seed(seed)
     newdata <- CheckPredictionVariables(object, newdata)
     class(object) <- "rpart"
-    type <- ifelse(object$outcome.numeric, "vector", "class")
+    type <- ifelse(object$numeric.outcome, "vector", "class")
 
     # If error or exclude for missing data then predict NA for cases with any missing data.
     # If partial or impute for missing data then allow rpart to predict for cases with missing data.
@@ -321,7 +321,7 @@ predict.CART <- function(object, seed = 1232, newdata = object$model, ...)
 #' @export
 Probabilities.CART <- function(object)
 {
-    if(object$outcome.numeric)
+    if(object$numeric.outcome)
         stop("Probabilities not available for numeric dependent variables.")
 
     class(object) <- "rpart"
