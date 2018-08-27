@@ -134,6 +134,7 @@ CART <- function(formula,
 
     class(result) <- c("CART", "MachineLearning", class(result))
 
+    result$n.observations <- nrow(estimation.data)
     result$missing <- missing
     result$model <- data
     result$sample.description <- processed.data$description
