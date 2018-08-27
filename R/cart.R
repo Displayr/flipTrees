@@ -296,15 +296,19 @@ extendLetters <- function(n) {
 #' @importFrom stats na.pass na.omit complete.cases
 #' @importFrom flipData CheckPredictionVariables
 #' @export
-predict.CART <- function(object, seed = 1232, newdata = object$model, ...)
+predict.CART <- function(object, seed = 1232, newdata = NULL, ...)
 {
     set.seed(seed)
-    newdata <- CheckPredictionVariables(object, newdata)
+    newdata <- if (is.null(newdata))
+        object$model # no warnings from CheckPredictionVariables if predicting training data
+    else
+        CheckPredictionVariables(object, newdata)
+
     class(object) <- "rpart"
     type <- ifelse(object$numeric.outcome, "vector", "class")
 
-    # If error or exclude for missing data then predict NA for cases with any missing data.
-    # If partial or impute for missing data then allow rpart to predict for cases with missing data.
+    # If error or exclude missing data, then predict NA for cases with any missing data.
+    # If partial or impute for missing data, then allow rpart to predict for cases with missing data.
     if (object$missing == "Error if missing data" || object$missing == "Exclude cases with missing data") {
         newdata[complete.cases(newdata), "prediction"] <-
             predict(object, type = type, newdata = newdata[complete.cases(newdata), , drop = FALSE], na.action = na.omit)
@@ -347,7 +351,8 @@ Probabilities.CART <- function(object)
 print.CART <- function(x, ...)
 {
     if (nrow(x$frame) == 1)
-        stop("Output tree has one node and no splits. Either change the input data or relax early stopping or pruning to produce a larger tree.")
+        stop("Output tree has one node and no splits. Either change the input data or relax early",
+             " stopping or pruning to produce a larger tree.")
 
     if (x$output == "Sankey")
     {

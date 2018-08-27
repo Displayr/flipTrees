@@ -4,8 +4,7 @@
 \alias{predict.CART}
 \title{predict.CART}
 \usage{
-\method{predict}{CART}(object, seed = 1232, newdata = object$model,
-  ...)
+\method{predict}{CART}(object, seed = 1232, newdata = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{CART} object.}
