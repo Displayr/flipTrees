@@ -299,8 +299,10 @@ extendLetters <- function(n) {
 predict.CART <- function(object, seed = 1232, newdata = NULL, ...)
 {
     set.seed(seed)
+
     newdata <- if (is.null(newdata))
-        object$model # no warnings from CheckPredictionVariables if predicting training data
+        # no warnings from CheckPredictionVariables if predicting training data
+        suppressWarnings(CheckPredictionVariables(object, object$model))
     else
         CheckPredictionVariables(object, newdata)
 
