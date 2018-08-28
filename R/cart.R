@@ -390,3 +390,15 @@ print.CART <- function(x, ...)
     else
         stop(paste("Unhandled output: ", x$output))
 }
+
+
+#' @importFrom flipFormat ExtractChartData
+#' @export
+flipFormat::ExtractChartData
+
+
+#' @export
+ExtractChartData.CART <- function(x)
+{
+    return(ExtractChartData(x$confusion))
+}
