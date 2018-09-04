@@ -3,6 +3,7 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
+\alias{Probabilities}
 \alias{ExtractChartData}
 \title{Objects exported from other packages}
 \keyword{internal}
@@ -11,6 +12,8 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
+  \item{flipData}{\code{\link[flipData]{Probabilities}}}
+
   \item{flipFormat}{\code{\link[flipFormat]{ExtractChartData}}}
 }}
 

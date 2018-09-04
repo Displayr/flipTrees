@@ -4,7 +4,7 @@
 \alias{Probabilities.CART}
 \title{Probabilities.CART}
 \usage{
-Probabilities.CART(object)
+\method{Probabilities}{CART}(object, ...)
 }
 \arguments{
 \item{object}{The \code{CART} object whose values are to be predicted.}

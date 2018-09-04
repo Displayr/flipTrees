@@ -320,13 +320,17 @@ predict.CART <- function(object, seed = 1232, newdata = NULL, ...)
         predict(object, type = type, newdata = newdata, na.action = na.pass)
 }
 
+#' @importFrom flipData Probabilities
+flipData::Probabilities
+
 #' Probabilities.CART
 #'
 #' @param object The \code{CART} object whose values are to be predicted.
+#' @param ... Not used.
 #' @importFrom stats na.pass
 #' @importFrom flipU OutcomeName
 #' @export
-Probabilities.CART <- function(object)
+Probabilities.CART <- function(object, ...)
 {
     if(object$numeric.outcome)
         stop("Probabilities not available for numeric dependent variables.")
