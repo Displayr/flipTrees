@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{object}{The \code{CART} object whose values are to be predicted.}
+
+\item{...}{Not used.}
 }
 \description{
 Probabilities.CART
