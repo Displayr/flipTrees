@@ -102,9 +102,9 @@ getPartyNodes <- function(c, split.c, not.leaf, yval, numeric.breaks, numeric.br
         split.c <- split.c + 1L
 
         left.child <- getPartyNodes(c, split.c, not.leaf, yval, numeric.breaks, numeric.breaks.reversed,
-                              outcome.name)
+                                    outcome.name)
         right.child <- getPartyNodes(left.child$c, left.child$split.c, not.leaf, yval, numeric.breaks,
-                               numeric.breaks.reversed, outcome.name)
+                                     numeric.breaks.reversed, outcome.name)
         kids <- if (is.reversed)
             list(right.child$node, left.child$node)
         else
@@ -132,6 +132,9 @@ truncateLabel <- function(label, truncation.length = 20)
         label
 }
 
+#' Recursively extracts information about the nodes from a party tree with \code{node} as the root,
+#' appending the extracted info to \code{node.list} in depth-first order
+#' @noRd
 extractNodeInfo <- function(node.list, node, outcome.var, row.i, var.names, node.i)
 {
     result <- list()
@@ -202,6 +205,10 @@ computeYProb <- function(outcome.var, row.i, node.row.i)
 partyToTreeFrame <- function(obj)
 {
     outcome.var <- obj$data[[OutcomeName(obj$terms)]]
+    # CHAID trees seem to be missing the outcome from their data for some reason, so we must look
+    # elsewhere for it
+    if (is.null(outcome.var))
+        outcome.var <- obj$fitted$`(response)`
     row.i <- as.integer(row.names(obj$data))
     node.list <- extractNodeInfo(list(), obj$node, outcome.var, row.i, colnames(obj$data), 1)
     n.nodes <- length(node.list)
