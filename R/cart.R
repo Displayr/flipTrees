@@ -144,7 +144,7 @@ CART <- function(formula,
     if (is.null(subset))
         subset <- rep(TRUE, nrow(data))
     result$subset <- processed.data$post.missing.data.estimation.sample # remove missing, as per other MachineLearning models
-    result$weights <- weights
+    result$weights <- processed.data$unfiltered.weights
     result$formula <- formula
 
     if (result$show.labels <- show.labels)
