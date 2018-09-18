@@ -186,7 +186,5 @@ test_that("Infinity allowed in predictors but not outcome", {
                  fixed = TRUE)
     expect_error(CART(marital ~ sex + race + hrs_per_week + age,
                       data = adult.2000,
-                      missing = "Exclude cases with missing data"),
-                 "Variable(s) age contain infinite values. Either recode the infinities to finite values or set them as missing data.",
-                 fixed = TRUE)
+                      missing = "Exclude cases with missing data"), NA)
 })
