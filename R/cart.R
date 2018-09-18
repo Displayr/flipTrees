@@ -51,7 +51,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #'     minsize or mindev
 #' @details Creates an \code{\link[rpart]{rpart.object}} tree and plots it as a
 #'     \code{\link{SankeyTree}}
-#' @importFrom flipData GetData CalibrateWeight
+#' @importFrom flipData GetData CalibrateWeight ErrorIfInfinity
 #' @importFrom flipData EstimationData
 #' @importFrom flipFormat Labels
 #' @importFrom flipRegression ConfusionMatrix
@@ -100,6 +100,8 @@ CART <- function(formula,
     outcome.name <- OutcomeName(formula)
     data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
+    ErrorIfInfinity(processed.data$estimation.data[outcome.name])
+
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
     outcome.is.factor <- is.factor(estimation.data[[outcome.name]])

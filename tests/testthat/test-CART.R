@@ -171,3 +171,22 @@ test_that("label abbrev",
     expect_equal(dim(res.abbrv$splits), dim(res.full$splits))
 })
 
+
+data(adult.2000, package = "flipExampleData")
+set.seed(1234)
+adult.2000$race[runif(2000) > 0.9] <- NA
+adult.2000$age[runif(2000) > 0.9] <- -Inf
+adult.2000$hrs_per_week[runif(2000) > 0.9] <- Inf
+
+test_that("Infinity allowed in predictors but not outcome", {
+    expect_error(CART(age ~ sex + race + hrs_per_week + marital,
+                            data = adult.2000,
+                            missing = "Exclude cases with missing data"),
+                 "Variable(s) age contain infinite values. Either recode the infinities to finite values or set them as missing data.",
+                 fixed = TRUE)
+    expect_error(CART(marital ~ sex + race + hrs_per_week + age,
+                      data = adult.2000,
+                      missing = "Exclude cases with missing data"),
+                 "Variable(s) age contain infinite values. Either recode the infinities to finite values or set them as missing data.",
+                 fixed = TRUE)
+})
