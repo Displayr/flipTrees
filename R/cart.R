@@ -45,6 +45,8 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #'     \code{"Full labels"}.
 #' @param decimals The number of decimal places to show when \code{"output"}
 #'     is \code{"Prediction-Accuracy Table"}.
+#' @param long.running.calculations Allow categorical predictors with
+#'     over 30 levels.
 #' @param seed The random number seed.
 #' @param ... Other arguments to be supplied to \code{\link{rpart}}.
 #'     Normally used for mincut,
@@ -74,6 +76,7 @@ CART <- function(formula,
                  predictor.level.treatment = "Abbreviated labels",
                  outcome.level.treatment = "Full labels",
                  decimals = NULL,
+                 long.running.calculations = TRUE,
                  seed = 12321,
                  ...)
 {
@@ -105,6 +108,14 @@ CART <- function(formula,
     unfiltered.weights <- processed.data$unfiltered.weights
     estimation.data <- processed.data$estimation.data
     outcome.is.factor <- is.factor(estimation.data[[outcome.name]])
+
+    lev <- sapply(estimation.data[!colnames(estimation.data) %in% outcome.name],
+                  function(x) length(levels(x)))
+    if (!long.running.calculations && max(lev) > 30)
+        stop("There are more than 30 categories in predictor variable(s) ",
+             paste(names(which.max(lev)), collapse = ", "),
+             ". This may cause the analysis to take a long time to run.",
+             " Please check 'Allow long running calculations' to proceed.")
 
     cp <- ifelse(early.stopping, 0.01, 0)
     control <- rpart.control(cp = cp)

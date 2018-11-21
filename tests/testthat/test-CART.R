@@ -188,3 +188,15 @@ test_that("Infinity allowed in predictors but not outcome", {
                       data = adult.2000,
                       missing = "Exclude cases with missing data"), NA)
 })
+
+
+test_that("Many factor levels", {
+
+    df <- data.frame(x = as.factor(rep_len(c("A", "B"), length.out = 100)),
+                     y = as.factor(rep_len(c(seq(50)), length.out = 100)),
+                     z = runif(100))
+    expect_error(CART(x ~ y + z, data = df, long.running.calculations = FALSE),
+                 "There are more than 30 categories in predictor variable(s) y.",
+                 fixed = TRUE)
+})
+
