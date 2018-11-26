@@ -113,7 +113,7 @@ CART <- function(formula,
                   function(x) length(levels(x)))
     if (!long.running.calculations && max(lev) > 30)
         stop("There are more than 30 categories in predictor variable(s) ",
-             paste(names(which.max(lev)), collapse = ", "),
+             paste(Labels(data, names(which.max(lev))), collapse = ", "),
              ". This may cause the analysis to take a long time to run.",
              " Please check 'Allow long running calculations' to proceed.")
 
