@@ -115,7 +115,7 @@ CART <- function(formula,
         stop("There are more than 30 categories in predictor variable(s) ",
              paste(Labels(data, names(which.max(lev))), collapse = ", "),
              ". This may cause the analysis to take a long time to run.",
-             " Please check 'Allow long running calculations' to proceed.")
+             " Please check 'Allow long-running calculations' to proceed.")
 
     cp <- ifelse(early.stopping, 0.01, 0)
     control <- rpart.control(cp = cp)
