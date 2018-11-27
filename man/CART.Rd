@@ -9,7 +9,7 @@ CART(formula, data = NULL, subset = NULL, weights = NULL,
   early.stopping = TRUE, auxiliary.data = NULL, show.labels = FALSE,
   predictor.level.treatment = "Abbreviated labels",
   outcome.level.treatment = "Full labels", decimals = NULL,
-  seed = 12321, ...)
+  long.running.calculations = TRUE, seed = 12321, ...)
 }
 \arguments{
 \item{formula}{A formula expression. The left-hand-side (response)
@@ -67,6 +67,9 @@ displayed: \code{"Letters"}, \code{"Abbreviated labels"} or
 
 \item{decimals}{The number of decimal places to show when \code{"output"}
 is \code{"Prediction-Accuracy Table"}.}
+
+\item{long.running.calculations}{Allow categorical predictors with
+over 30 levels.}
 
 \item{seed}{The random number seed.}
 
