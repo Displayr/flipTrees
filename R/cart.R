@@ -323,8 +323,11 @@ predict.CART <- function(object, seed = 1232, newdata = NULL, ...)
     newdata <- shortenFactorLevels(newdata, "", object$predictor.level.treatment, NULL)
 
     # no warnings from CheckPredictionVariables if predicting training data
-    warn.function <- if (is.null(newdata)) suppressWarnings else identity
-    newdata <- warn.function(CheckPredictionVariables(object, object$model))
+    newdata <- if (is.null(newdata))
+        # no warnings from CheckPredictionVariables if predicting training data
+        suppressWarnings(CheckPredictionVariables(object, object$model))
+    else
+        CheckPredictionVariables(object, newdata)
 
     class(object) <- "rpart"
     type <- ifelse(object$numeric.outcome, "vector", "class")
