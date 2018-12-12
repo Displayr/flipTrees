@@ -313,11 +313,9 @@ predict.CART <- function(object, seed = 1232, newdata = NULL, ...)
 {
     set.seed(seed)
 
-    newdata <- if (is.null(newdata))
-        # no warnings from CheckPredictionVariables if predicting training data
-        suppressWarnings(CheckPredictionVariables(object, object$model))
-    else
-        CheckPredictionVariables(object, newdata)
+    # no warnings from CheckPredictionVariables if predicting training data
+    warn.function <- if (is.null(newdata)) suppressWarnings else identity
+    newdata <- warn.function(CheckPredictionVariables(object, object$model))
 
     class(object) <- "rpart"
     type <- ifelse(object$numeric.outcome, "vector", "class")
