@@ -147,6 +147,7 @@ CART <- function(formula,
 
     class(result) <- c("CART", "MachineLearning", class(result))
 
+    result$predictor.level.treatment <- predictor.level.treatment
     result$n.observations <- nrow(estimation.data)
     result$missing <- missing
     result$model <- data
@@ -312,6 +313,14 @@ extendLetters <- function(n) {
 predict.CART <- function(object, seed = 1232, newdata = NULL, ...)
 {
     set.seed(seed)
+
+    # coerce char varibales to factors and abbreviate
+    for (name in colnames(newdata))
+    {
+        if (is.character(newdata[[name]]))
+            newdata[[name]] <- as.factor(newdata[[name]])
+    }
+    newdata <- shortenFactorLevels(newdata, "", object$predictor.level.treatment, NULL)
 
     # no warnings from CheckPredictionVariables if predicting training data
     warn.function <- if (is.null(newdata)) suppressWarnings else identity
