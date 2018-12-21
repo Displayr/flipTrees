@@ -4,15 +4,15 @@
 \alias{predict.CART}
 \title{predict.CART}
 \usage{
-\method{predict}{CART}(object, seed = 1232, newdata = NULL, ...)
+\method{predict}{CART}(object, newdata = NULL, seed = 1232, ...)
 }
 \arguments{
 \item{object}{A \code{CART} object.}
 
-\item{seed}{A random number seed to ensure stability of predictions.}
-
 \item{newdata}{Optionally, a data frame including the variables used to fit the model.
 If omitted, the \code{data} supplied to \code{CART()} is used before any filtering.}
+
+\item{seed}{A random number seed to ensure stability of predictions.}
 
 \item{...}{Extra parameters. Currently not used.}
 }

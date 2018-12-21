@@ -310,7 +310,7 @@ extendLetters <- function(n) {
 #' @importFrom stats na.pass na.omit complete.cases
 #' @importFrom flipData CheckPredictionVariables
 #' @export
-predict.CART <- function(object, seed = 1232, newdata = NULL, ...)
+predict.CART <- function(object, newdata = NULL, seed = 1232, ...)
 {
     set.seed(seed)
 
