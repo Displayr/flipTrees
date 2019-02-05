@@ -76,9 +76,17 @@ for (missing in c("Exclude cases with missing data",
         test_that(paste(missing, type),
         {
             imputation <- missing == "Imputation (replace missing values with estimates)"
-            expect_error((suppressWarnings(CART(yesno ~ crl.tot + dollar + bang + money + n000 + make,
+            expect_error((z <- suppressWarnings(CART(yesno ~ crl.tot + dollar + bang + money + n000 + make,
                                                 data = spam.sample, subset = TRUE,  weights = NULL,
                                                 output = type, missing = missing))), NA)
+
+            if (type == "Prediction-Accuracy Table")
+                expect_equal(attr(z, "ChartData"), ExtractChartData(z$confusion))
+            else if (type == "Cross Validation")
+                expect_equal(attr(z, "ChartData"), z$cptable)
+            else
+                expect_is(attr(z, "ChartData"), "character")
+
             colas$Q32[unclass(colas$Q32) == 1] <- NA
             colas.small <- colas[, colnames(colas) %in% c("Q32", "Q3", "Q2", "Q4_A", "Q4_B", "Q4_C", "Q11", "Q12")]
             colas.small$Q3[1] <- NA

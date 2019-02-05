@@ -170,6 +170,7 @@ CART <- function(formula,
         result$outcome.label <- outcome.name
 
     result$confusion <- ConfusionMatrix(result, subset, unfiltered.weights, decimals = decimals)
+    attr(result, "ChartData") <- prepareChartData(result)
 
     return(result)
 }
@@ -418,6 +419,18 @@ print.CART <- function(x, ...)
         stop(paste("Unhandled output: ", x$output))
 }
 
+prepareChartData <- function(x)
+{
+    if (x$output == "Cross Validation")
+        return(x$cptable)
+    else if (x$output == "Prediction-Accuracy Table")
+        return(ExtractChartData(x$confusion))
+    else
+    {
+        class(x) <- "rpart"
+        return(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model))
+    }
+}
 
 #' @importFrom flipFormat ExtractChartData
 #' @export
