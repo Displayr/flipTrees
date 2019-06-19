@@ -331,6 +331,11 @@ predict.CART <- function(object, newdata = NULL, seed = 1232, ...)
         CheckPredictionVariables(object, newdata)
 
     class(object) <- "rpart"
+
+    ## old CART outputs used outcome.numeric instead of numeric.outcome; DS-2488
+    if (is.null(object$numeric.outcome))
+        object$numeric.outcome <- object$outcome.numeric
+
     type <- ifelse(object$numeric.outcome, "vector", "class")
 
     # If error or exclude missing data, then predict NA for cases with any missing data.
@@ -356,6 +361,9 @@ flipData::Probabilities
 #' @export
 Probabilities.CART <- function(object, ...)
 {
+    ## old CART outputs used outcome.numeric instead of numeric.outcome; DS-2488
+    if (is.null(object$numeric.outcome))
+        object$numeric.outcome <- object$outcome.numeric
     if(object$numeric.outcome)
         stop("Probabilities not available for numeric dependent variables.")
 

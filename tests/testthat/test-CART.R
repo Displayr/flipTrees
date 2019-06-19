@@ -208,3 +208,8 @@ test_that("Many factor levels", {
                  fixed = TRUE)
 })
 
+test_that("predict method works with old outputs; DS-2488",
+{
+    load("oldCART.rda")
+    expect_error(predict(cart), NA)
+})
