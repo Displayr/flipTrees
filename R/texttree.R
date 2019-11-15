@@ -43,7 +43,7 @@ CheckDataForTextTree <- function(data, weights = NULL, subset = NULL, missing = 
     {
         ErrorIfMissingDataFound(subset.data)
         num.valid <- nrow(subset.data)
-    } else if (missing == "Imputation") {
+    } else if (missing == "Imputation" || missing == "Imputation (replace missing values with estimates)") {
         num.valid <- nrow(subset.data)
     } else if (missing == "Use partial data (pairwise correlations)" || missing == "Use partial data") {
         num.valid <- nrow(RemoveCasesWithAllNA(subset.data))
