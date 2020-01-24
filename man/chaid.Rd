@@ -4,8 +4,14 @@
 \alias{chaid}
 \title{Constructs a decision tree using the CHAID algorithm.}
 \usage{
-chaid(formula, data, subset, weights, na.action = na.omit,
-  control = chaid_control())
+chaid(
+  formula,
+  data,
+  subset,
+  weights,
+  na.action = na.omit,
+  control = chaid_control()
+)
 }
 \arguments{
 \item{formula}{A formula expression. The left-hand-side (response) should be

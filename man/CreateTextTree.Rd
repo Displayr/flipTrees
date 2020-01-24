@@ -4,8 +4,13 @@
 \alias{CreateTextTree}
 \title{\code{CreateTextTree} Generate a predictive tree from an outcome variable and a tree.}
 \usage{
-CreateTextTree(tree, outcome.variable, original.text, transformed.text,
-  output = "Sankey")
+CreateTextTree(
+  tree,
+  outcome.variable,
+  original.text,
+  transformed.text,
+  output = "Sankey"
+)
 }
 \arguments{
 \item{tree}{A tree object.}

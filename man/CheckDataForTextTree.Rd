@@ -5,8 +5,12 @@
 \title{\code{CheckDataForTextTree} Check that there are enough cases to compute the
 tree from the term document matrix.}
 \usage{
-CheckDataForTextTree(data, weights = NULL, subset = NULL,
-  missing = "Exclude cases with missing data")
+CheckDataForTextTree(
+  data,
+  weights = NULL,
+  subset = NULL,
+  missing = "Exclude cases with missing data"
+)
 }
 \arguments{
 \item{data}{A data frame where the first column is the outcome variable and the subsequent

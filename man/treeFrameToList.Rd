@@ -5,10 +5,18 @@
 \title{\code{treeFrameToList} Converts a \code{tree} into a format usable in
 a sankeytree.}
 \usage{
-treeFrameToList(frame, xlevels, model, assigned, labels,
-  max.tooltip.length = 150, numeric.distribution = TRUE,
-  custom.color = "default", num.color.div = 101,
-  const.bin.size = TRUE)
+treeFrameToList(
+  frame,
+  xlevels,
+  model,
+  assigned,
+  labels,
+  max.tooltip.length = 150,
+  numeric.distribution = TRUE,
+  custom.color = "default",
+  num.color.div = 101,
+  const.bin.size = TRUE
+)
 }
 \arguments{
 \item{frame}{The tree frame.}

@@ -1,6 +1,6 @@
 context("CART")
 
-data("spam7", package = "DAAG")
+data("spam7", package = "flipTrees")
 spam.sample <- spam7[sample(seq(1,4601), 500, replace=FALSE), ]
 data(cola, package = "flipExampleData")
 colas <- cola

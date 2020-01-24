@@ -4,9 +4,16 @@
 \alias{chaid_control}
 \title{Default hyperparameters for the CHAID algorithm.}
 \usage{
-chaid_control(alpha2 = 0.05, alpha3 = -1, alpha4 = 0.05,
-  minsplit = 20, minbucket = 7, minprob = 0.01, stump = FALSE,
-  maxheight = -1)
+chaid_control(
+  alpha2 = 0.05,
+  alpha3 = -1,
+  alpha4 = 0.05,
+  minsplit = 20,
+  minbucket = 7,
+  minprob = 0.01,
+  stump = FALSE,
+  maxheight = -1
+)
 }
 \arguments{
 \item{alpha2}{Level of significance used for merging of predictor categories

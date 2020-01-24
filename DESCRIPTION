@@ -1,32 +1,29 @@
 Package: flipTrees
 Type: Package
 Title: Tools for classification and regression trees
-Version: 1.0.1
+Version: 1.0.2
 Author: Displayr <opensource@displayr.com>
 Maintainer: Displayr <opensource@displayr.com>
-Description: Wrappers for classification and regression trees using the flip
-    Project conventions.
+Description: Wrappers for classification and regression trees using the
+        flip Project conventions.
 License: GPL-3
 LazyData: TRUE
-Suggests:
-    testthat,
-    flipExampleData,
-    DAAG
-Imports:
-    rpart,
-    partykit,
-    flipData (>= 1.1.3),
-    flipFormat,
-    flipRegression,
-    flipU (>= 1.1.0),
-    hash,
-    colorspace,
-    rhtmlSankeyTree,
-    stats
+Suggests: testthat,
+ flipExampleData
+Imports: rpart,
+ partykit,
+ flipData (>= 1.1.3),
+ flipFormat,
+ flipRegression,
+ flipU (>= 1.1.0),
+ hash,
+ colorspace,
+ rhtmlSankeyTree,
+ stats
 Remotes: Displayr/flipData,
-    Displayr/flipFormat,
-    Displayr/flipRegression,
-    Displayr/flipU,
-    Displayr/rhtmlSankeyTree
-RoxygenNote: 6.1.1
+ Displayr/flipFormat,
+ Displayr/flipRegression,
+ Displayr/flipU,
+ Displayr/rhtmlSankeyTree
+RoxygenNote: 7.0.2
 Encoding: UTF-8
