@@ -1,6 +1,7 @@
 #' @importFrom partykit party
 #' @importFrom flipU OutcomeName
 #' @importFrom stats formula
+#' @importFrom verbs Sum
 treeFrameToParty <- function(frame, xlevels, model, terms, labels)
 {
     df <- data.frame()
@@ -8,7 +9,7 @@ treeFrameToParty <- function(frame, xlevels, model, terms, labels)
     node.hash <- getNodeHash(xlevels)
 
     not.leaf <- frame$var != "<leaf>"
-    n.splits <- sum(not.leaf)
+    n.splits <- Sum(not.leaf, remove.missing = FALSE)
     non.leaf.indices <- (1:nrow(frame))[not.leaf]
     var.names <- as.character(frame$var[non.leaf.indices])
     numeric.breaks <- rep(NA, n.splits)

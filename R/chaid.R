@@ -141,6 +141,7 @@ chaid_control <- function(alpha2 = 0.05,
 #' @param height current height of the tree
 #' @return an object of class partynode representing the root node of the tree
 #' @importFrom partykit nodeids kidids_split
+#' @importFrom verbs Sum
 #' @noRd
 step5 <- function(id = 1L,
                   response,
@@ -158,7 +159,7 @@ step5 <- function(id = 1L,
     # data, the sum of the weights is the effective number of data points. Here,
     # we don't split the data further if we have less (effective) data points
     # than the threshold.
-    if (sum(weights) < ctrl$minsplit)
+    if (Sum(weights, remove.missing = FALSE) < ctrl$minsplit)
         return(partynode(id = id))
 
     # Don't go deeper than one level if this is meant to be a stump
@@ -259,6 +260,7 @@ step1 <- function(response, xvars, weights, indices = NULL, ctrl) {
 #' @note this does not do the actual merging, we save that for when we've
 #'     decided what the best thing to merge is.
 #' @importFrom stats aggregate
+#' @importFrom verbs Sum
 #' @noRd
 step1internal <- function(response, x, weights, index = NULL, ctrl)
 {
@@ -288,8 +290,8 @@ step1internal <- function(response, x, weights, index = NULL, ctrl)
             break()
 
         # is step 3 necessary?
-        runstep3 <- sum(mlev[1] == index) > 1 ||
-            sum(mlev[2] == index) > 1
+        runstep3 <- Sum(mlev[1] == index, remove.missing = FALSE) > 1 ||
+            Sum(mlev[2] == index, remove.missing = FALSE) > 1
         runstep3 <- runstep3 && (alpha3 > 0)
 
         # Merge levels by giving all grouped levels the same group number
@@ -333,6 +335,7 @@ step1internal <- function(response, x, weights, index = NULL, ctrl)
 #'     state of merging. \code{NULL} is no suitable merge could be found (all
 #'     levels are too different to each other).
 #' @importFrom stats xtabs
+#' @importFrom verbs Sum
 #' @noRd
 step2 <- function(response,
                   x,
@@ -388,7 +391,7 @@ step2 <- function(response,
             c(pos %% nrow(logpmaxs), as.integer(pos / nrow(logpmaxs)) + 1)
 
         # sample size stopping criteria
-        nmin <- min(c(ceiling(ctrl$minprob * sum(weights)), ctrl$minbucket))
+        nmin <- min(c(ceiling(ctrl$minprob * Sum(weights, remove.missing = FALSE)), ctrl$minbucket))
 
         if (exp(logpmax) > ctrl$alpha2 || any(rowSums(xytab) < nmin)) {
             xytab[min(levindx), ] <- colSums(xytab[levindx, ])
@@ -424,10 +427,11 @@ step2 <- function(response,
 
 #' Splits two merged groups of levels within a predictor apart
 #' @return the new mapping of levels to groups after the split
+#' @importFrom verbs Sum
 #' @noRd
 step3 <- function(x, y, weights, alpha3 = 0.049, index, kat) {
     split_indx <- index
-    if (sum(index == kat) > 2) {
+    if (Sum(index == kat, remove.missing = FALSE) > 2) {
         sp <- step3intern(x, y, weights, alpha3, index, kat)
         # compute minimum p-value and split
         if (!is.null(sp))
@@ -530,6 +534,7 @@ step4 <- function(response,
 }
 
 #' Calculates adjusted p-value for a particular way of splitting the tree
+#' @importFrom verbs Sum
 #' @noRd
 step4internal <- function(response, x, weights, index, ctrl) {
     if (nlevels(response[, drop = TRUE]) < 2)
@@ -541,7 +546,7 @@ step4internal <- function(response, x, weights, index, ctrl) {
         mx <- state$mergedx
 
     nmin <-
-        min(c(ceiling(ctrl$minprob * sum(weights)), ctrl$minbucket))
+        min(c(ceiling(ctrl$minprob * Sum(weights, remove.missing = FALSE)), ctrl$minbucket))
     if (any(table(mx[weights > 0]) < nmin))
         return(0)
 
@@ -568,8 +573,8 @@ step4internal <- function(response, x, weights, index, ctrl) {
         ret <- logp + lchoose(c_levels - 1, r_levels - 1)
     } else {
         i <- 0:(r_levels - 1) # formula (3.2)
-        fact <- sum((-1) ^ i * ((r_levels - i) ^ c_levels) /
-                        (factorial(i) * factorial(r_levels - i)))
+        fact <- Sum((-1) ^ i * ((r_levels - i) ^ c_levels) /
+                        (factorial(i) * factorial(r_levels - i)), remove.missing = FALSE)
         ret <- logp + log(fact)
     }
     attr(logp, "Chisq") <- attr(logp, "Chisq")
@@ -579,13 +584,14 @@ step4internal <- function(response, x, weights, index, ctrl) {
 #' Performs a (log) chi-squared test on a given crosstab
 #' @return the log of the p-value and the chi-squared value for the crosstab
 #' @importFrom stats chisq.test pchisq
+#' @importFrom verbs Sum
 #' @noRd
 logchisq.test <- function(x) {
     cs <- colSums(x) > 0
     rs <- rowSums(x) > 0
-    if (sum(cs) < 2 || sum(rs) < 2)
+    if (Sum(cs, remove.missing = FALSE) < 2 || Sum(rs, remove.missing = FALSE) < 2)
         return(0)
-    if (min(x) < 10 && sum(x) < 100) {
+    if (min(x) < 10 && Sum(x, remove.missing = FALSE) < 100) {
         ctest <- chisq.test(
             x[rs, cs],
             correct = FALSE,
@@ -628,9 +634,10 @@ mergelevels <- function(index, merge) {
 }
 
 #' split a merged group into two groups
+#' @importFrom verbs Sum
 #' @noRd
 splitlevels <- function(index, level, split) {
-    stopifnot(sum(index == level) > length(split))
+    stopifnot(Sum(index == level, remove.missing = FALSE) > length(split))
 
     # levels must be relabeled
     gr <- index > level

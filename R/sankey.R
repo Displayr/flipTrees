@@ -23,6 +23,7 @@
 #' @importFrom flipFormat FormatAsReal FormatAsPercent
 #' @importFrom colorspace diverge_hsv
 #' @importFrom grDevices rgb rgb2hsv col2rgb hsv
+#' @importFrom verbs Sum
 #'
 treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip.length = 150,
                             numeric.distribution = TRUE, custom.color = "default", num.color.div = 101,
@@ -122,8 +123,8 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         #node.descriptions <- paste0("<br>",node.descriptions)
 
         node.color <- rep("0", nrow(frame))
-        l.na = sum(is.na(custom.color))
-        l.col = sum(.areColors(custom.color))
+        l.na = Sum(is.na(custom.color), remove.missing = FALSE)
+        l.col = Sum(.areColors(custom.color), remove.missing = FALSE)
         if (custom.color == "default" || (l.na == 0 && l.col == length(custom.color)))
         {
             if (custom.color == "default" || l.col < 2) {
@@ -189,13 +190,13 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
             bins.breaks[1] = xmin - abs(xmin)/100
             bins.breaks[length(bins.breaks)] = xmax + xmax/100
             overall.distribution = hist(outcome.variable, breaks = bins.breaks, plot = FALSE)$counts
-            overall.distribution = overall.distribution/sum(overall.distribution)
+            overall.distribution = overall.distribution/Sum(overall.distribution, remove.missing = FALSE)
 
             for (i in 1:nrow(frame)) {
                 this.node.values = nodes.distribution.temp[i,!is.na(nodes.distribution.temp[i,])]
                 if (length(this.node.values) > 0){
                     nodes.hist = hist(this.node.values, breaks = bins.breaks, plot = FALSE)$counts
-                    nodes.hist = nodes.hist/sum(nodes.hist)
+                    nodes.hist = nodes.hist/Sum(nodes.hist, remove.missing = FALSE)
                 } else {
                     nodes.hist = 0
                 }
@@ -229,8 +230,8 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         }
 
         node.color <- rep("0", nrow(frame))
-        l.na = sum(is.na(custom.color))
-        l.col = sum(.areColors(custom.color))
+        l.na = Sum(is.na(custom.color), remove.missing = FALSE)
+        l.col = Sum(.areColors(custom.color), remove.missing = FALSE)
         if (custom.color == "default" || (l.na == 0 && l.col == length(custom.color)))
         {
             if (custom.color == "default" || l.col < 2) {
