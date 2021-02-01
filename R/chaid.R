@@ -335,7 +335,7 @@ step1internal <- function(response, x, weights, index = NULL, ctrl)
 #'     state of merging. \code{NULL} is no suitable merge could be found (all
 #'     levels are too different to each other).
 #' @importFrom stats xtabs
-#' @importFrom verbs Sum
+#' @importFrom verbs Sum SumRows SumColumns
 #' @noRd
 step2 <- function(response,
                   x,
@@ -393,8 +393,8 @@ step2 <- function(response,
         # sample size stopping criteria
         nmin <- min(c(ceiling(ctrl$minprob * Sum(weights, remove.missing = FALSE)), ctrl$minbucket))
 
-        if (exp(logpmax) > ctrl$alpha2 || any(rowSums(xytab) < nmin)) {
-            xytab[min(levindx), ] <- colSums(xytab[levindx, ])
+        if (exp(logpmax) > ctrl$alpha2 || any(SumRows(xytab, remove.missing = FALSE) < nmin)) {
+            xytab[min(levindx), ] <- SumColumns(xytab[levindx, ], remove.missing = FALSE)
             mergedx[mergedx == rownames(xytab)[max(levindx)]] <-
                 rownames(xytab)[min(levindx)]
             xytab <- xytab[-max(levindx), ]
@@ -584,11 +584,11 @@ step4internal <- function(response, x, weights, index, ctrl) {
 #' Performs a (log) chi-squared test on a given crosstab
 #' @return the log of the p-value and the chi-squared value for the crosstab
 #' @importFrom stats chisq.test pchisq
-#' @importFrom verbs Sum
+#' @importFrom verbs Sum SumRows SumColumns
 #' @noRd
 logchisq.test <- function(x) {
-    cs <- colSums(x) > 0
-    rs <- rowSums(x) > 0
+    cs <- SumColumns(x, remove.missing = FALSE) > 0
+    rs <- SumRows(x, remove.missing = FALSE) > 0
     if (Sum(cs, remove.missing = FALSE) < 2 || Sum(rs, remove.missing = FALSE) < 2)
         return(0)
     if (min(x) < 10 && Sum(x, remove.missing = FALSE) < 100) {
