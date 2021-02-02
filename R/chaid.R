@@ -393,8 +393,8 @@ step2 <- function(response,
         # sample size stopping criteria
         nmin <- min(c(ceiling(ctrl$minprob * Sum(weights, remove.missing = FALSE)), ctrl$minbucket))
 
-        if (exp(logpmax) > ctrl$alpha2 || any(SumRows(xytab, remove.missing = FALSE) < nmin)) {
-            xytab[min(levindx), ] <- SumColumns(xytab[levindx, ], remove.missing = FALSE)
+        if (exp(logpmax) > ctrl$alpha2 || any(SumRows(xytab, remove.columns = NULL, remove.missing = FALSE) < nmin)) {
+            xytab[min(levindx), ] <- SumColumns(xytab[levindx, ], remove.rows = NULL, remove.missing = FALSE)
             mergedx[mergedx == rownames(xytab)[max(levindx)]] <-
                 rownames(xytab)[min(levindx)]
             xytab <- xytab[-max(levindx), ]
@@ -587,8 +587,8 @@ step4internal <- function(response, x, weights, index, ctrl) {
 #' @importFrom verbs Sum SumRows SumColumns
 #' @noRd
 logchisq.test <- function(x) {
-    cs <- SumColumns(x, remove.missing = FALSE) > 0
-    rs <- SumRows(x, remove.missing = FALSE) > 0
+    cs <- SumColumns(x, remove.rows = NULL, remove.missing = FALSE) > 0
+    rs <- SumRows(x, remove.columns = NULL,remove.missing = FALSE) > 0
     if (Sum(cs, remove.missing = FALSE) < 2 || Sum(rs, remove.missing = FALSE) < 2)
         return(0)
     if (min(x) < 10 && Sum(x, remove.missing = FALSE) < 100) {
