@@ -4,7 +4,8 @@
 \name{spam7}
 \alias{spam7}
 \title{Spam E-mail Data}
-\format{This data frame contains the following columns:
+\format{
+This data frame contains the following columns:
 \itemize{
 \item \code{crl.tot}: total length of words in capitals
 \item \code{dollar}:  number of occurrences of the \$ symbol
@@ -13,7 +14,8 @@
 \item \code{n000}: number of occurrences of the string `000'
 \item \code{make}: number of occurrences of the word `make'
 \item \code{yesno}: outcome variable, a factor with levels \code{n} not spam, \code{y} spam
-}}
+}
+}
 \source{
 George Forman, Hewlett-Packard Laboratories
 

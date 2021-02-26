@@ -197,6 +197,7 @@ getNodeHash <- function(xlevels)
     result = list(features.hash, xlevels.hash)
 }
 
+#' @importFrom verbs Sum
 getShortenedLevels <- function(lvls)
 {
     .appendNum <- function(text, text.hash, c) {
@@ -218,7 +219,7 @@ getShortenedLevels <- function(lvls)
     node.texts <- rep("", length(lvls))
     for (j in 1:length(lvls)) {
         text <- lvls[j]
-        text.len <- sapply(gregexpr("[[:alnum:]]+", text), function(x) sum(x > 0)) # count number of words
+        text.len <- sapply(gregexpr("[[:alnum:]]+", text), function(x) Sum(x > 0, remove.missing = FALSE)) # count number of words
         if (text.len == 0) {
             node.text <- "X"
         } else if (text.len == 1) {
