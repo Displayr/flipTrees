@@ -396,7 +396,7 @@ print.CART <- function(x, ...)
     if (x$output == "Sankey")
     {
         frame <- rPartToTreeFrame(x)
-        tree.list <- treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where, x$labels)
+        tree.list <- treeFrameToList(frame, attr(x, "xlevels"), x$model, x$where, x$labels, ...)
         plt <- SankeyTree(tree.list, value = "n", nodeHeight = 100, numeric.distribution = TRUE,
                           tooltip = "tooltip", treeColors = TRUE, terminalDescription = TRUE)
         print(plt)

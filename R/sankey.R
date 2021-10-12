@@ -112,6 +112,9 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         })
     }
 
+    if (length(custom.color) == 0L)
+        custom.color <- formals()[["custom.color"]]
+
     if (outcome.is.factor)
     { # Classification tree.
         tree.type = "Classification"
