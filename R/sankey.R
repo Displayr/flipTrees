@@ -23,7 +23,7 @@
 #' @importFrom flipFormat FormatAsReal FormatAsPercent
 #' @importFrom colorspace diverge_hsv
 #' @importFrom grDevices rgb rgb2hsv col2rgb hsv
-#' @importFrom verbs Sum SumEmptyHandling
+#' @importFrom verbs Sum
 #'
 treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip.length = 150,
                             numeric.distribution = TRUE, custom.color = "default", num.color.div = 101,
@@ -112,6 +112,9 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         })
     }
 
+    if (length(custom.color) == 0L)
+        custom.color <- formals()[["custom.color"]]
+
     if (outcome.is.factor)
     { # Classification tree.
         tree.type = "Classification"
@@ -123,8 +126,8 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         #node.descriptions <- paste0("<br>",node.descriptions)
 
         node.color <- rep("0", nrow(frame))
-        l.na = SumEmptyHandling(is.na(custom.color), remove.missing = FALSE)
-        l.col = SumEmptyHandling(.areColors(custom.color), remove.missing = FALSE)
+        l.na = Sum(is.na(custom.color), remove.missing = FALSE)
+        l.col = Sum(.areColors(custom.color), remove.missing = FALSE)
         if (custom.color == "default" || (l.na == 0 && l.col == length(custom.color)))
         {
             if (custom.color == "default" || l.col < 2) {
@@ -230,8 +233,8 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
         }
 
         node.color <- rep("0", nrow(frame))
-        l.na = SumEmptyHandling(is.na(custom.color), remove.missing = FALSE)
-        l.col = SumEmptyHandling(.areColors(custom.color), remove.missing = FALSE)
+        l.na = Sum(is.na(custom.color), remove.missing = FALSE)
+        l.col = Sum(.areColors(custom.color), remove.missing = FALSE)
         if (custom.color == "default" || (l.na == 0 && l.col == length(custom.color)))
         {
             if (custom.color == "default" || l.col < 2) {

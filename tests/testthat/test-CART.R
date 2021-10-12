@@ -19,6 +19,8 @@ test_that("saving variables",
                                    data = bank, subset = bank$ID > 100))
         expect_error(predict(z), NA)
         expect_error(flipData::Probabilities(z), NA)
+        expect_error(print(z), NA)
+        expect_error(print(z, custom.color = NULL), NA)
     })
 
 
