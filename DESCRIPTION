@@ -10,6 +10,7 @@ License: GPL-3
 LazyData: TRUE
 Suggests: testthat,
  flipExampleData
+Depends: R (>= 2.10)
 Imports: rpart,
  partykit,
  flipData (>= 1.1.3),

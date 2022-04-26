@@ -86,7 +86,7 @@ CART <- function(formula,
     subset <- eval(substitute(subset), data, parent.frame())
     if (!is.null(subset))
     {
-        if (is.null(subset.description) | (class(subset.description) == "try-error") | !is.null(attr(subset, "name")))
+        if (is.null(subset.description) || inherits(subset.description, "try-error") || !is.null(attr(subset, "name")))
             subset.description <- Labels(subset)
         if (is.null(attr(subset, "name")))
             attr(subset, "name") <- subset.description
