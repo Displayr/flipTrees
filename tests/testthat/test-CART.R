@@ -12,10 +12,13 @@ test_that("saving variables", {
     z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
               subset = bank$ID > 100)
     expect_error(predict(z), NA)
-    expect_error(flipData::Probabilities(z))
+    expect_error(flipData::Probabilities(z),
+                 "Probabilities not available for numeric dependent variables.",
+                 fixed = TRUE)
 
-    z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                               data = bank, subset = bank$ID > 100))
+    expect_warning(z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                             data = bank, subset = bank$ID > 100),
+                   "Some categories do not appear in the data: 'fOverall: 8'")
     expect_error(predict(z), NA)
     expect_error(flipData::Probabilities(z), NA)
     expect_error(print(z), NA)
@@ -24,19 +27,17 @@ test_that("saving variables", {
 
 
 z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100)
-test_that("rpart prediction",{
+test_that("rpart prediction", {
     expect_equal(unname(predict(z)[1]), 4.258064516129032)
 })
 
 
-z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                           data = bank, subset = bank$ID > 100))
 test_that("rpart Probabilities", {
+    expect_warning(z <- CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                             data = bank, subset = bank$ID > 100),
+                   "Some categories do not appear in the data: 'fOverall: 8'")
     expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2444444444444445)
 })
-
-z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                           data = bank, subset = bank$ID > 100))
 
 # Reading in the libraries so that their outputs do not pollute the test results.
 library(mice)
@@ -44,25 +45,36 @@ library(hot.deck)
 
 test_that("Error if missing data", {
     type <- "Sankey"
+    exp.error <- paste0("The data contains missing values. Change the 'missing' ",
+                        "option to run the analysis.")
     # Changing data
-    expect_error((CART(yesno ~ crl.tot + dollar + bang + money + n000 + make,
-                       data = spam.sample, missing = "Error if missing data")),NA)
+    expect_silent(CART(yesno ~ crl.tot + dollar + bang + money + n000 + make,
+                       data = spam.sample, missing = "Error if missing data"))
     colas$Q32[unclass(colas$Q32) == 1] <- NA
-    expect_that((CART(Q32 ~ Q2, data = colas, subset = TRUE,  missing = "Error if missing data")),
-                (throws_error()))
-    expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                      data = bank, subset = TRUE,  weights = NULL, output = type, missing = "Error if missing data")), (throws_error()))
+    expect_error(CART(Q32 ~ Q2, data = colas, subset = TRUE,  missing = "Error if missing data"),
+                 exp.error, fixed = TRUE)
+    expect_error(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                      data = bank, subset = TRUE,  weights = NULL, output = type,
+                      missing = "Error if missing data"),
+                 exp.error, fixed = TRUE)
     # filter
-    expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                      data = bank, subset = bank$ID > 100,  weights = NULL, output = type, missing = "Error if missing data")), (throws_error()))
+    expect_error(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                      data = bank, subset = bank$ID > 100,  weights = NULL,
+                      output = type, missing = "Error if missing data"),
+                 exp.error, fixed = TRUE)
     # weight
-    expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                      data = bank, subset = TRUE,  weights = bank$ID, output = type, missing = "Error if missing data")), (throws_error()))
+    expect_error(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                      data = bank, subset = TRUE,  weights = bank$ID, output = type,
+                      missing = "Error if missing data"),
+                 exp.error, fixed = TRUE)
     # weight and filter
-    expect_that((CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                      data = bank, subset = bank$ID > 100,  weights = bank$ID, missing = "Error if missing")), (throws_error()))
+    expect_error(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                      data = bank, subset = bank$ID > 100,  weights = bank$ID,
+                      missing = "Error if missing data"),
+                 exp.error, fixed = TRUE)
     # DS-1525, subset creates empty level of outcome
-    expect_error(suppressWarnings(CART(Q32 ~ Q2 + Q3, data = colas, subset = colas$Q32 != "Don't know")), NA)
+    expect_warning(CART(Q32 ~ Q2 + Q3, data = colas, subset = colas$Q32 != "Don't know"),
+                   "Some categories do not appear in the data: 'Q32. Income")
 })
 
 
@@ -72,10 +84,11 @@ for (missing in c("Exclude cases with missing data",
     for (type in c("Sankey", "Tree", "Text", "Prediction-Accuracy Table", "Cross Validation"))
         test_that(paste(missing, type),
         {
+            exclude <- missing == "Exclude cases with missing data"
             imputation <- missing == "Imputation (replace missing values with estimates)"
-            expect_error((z <- suppressWarnings(CART(yesno ~ crl.tot + dollar + bang + money + n000 + make,
-                                                data = spam.sample, subset = TRUE,  weights = NULL,
-                                                output = type, missing = missing))), NA)
+            expect_error(z <- CART(yesno ~ crl.tot + dollar + bang + money + n000 + make,
+                                   data = spam.sample, subset = TRUE,  weights = NULL,
+                                   output = type, missing = missing), NA)
 
             if (type == "Prediction-Accuracy Table")
                 expect_equal(attr(z, "ChartData"), ExtractChartData(z$confusion))
@@ -87,33 +100,41 @@ for (missing in c("Exclude cases with missing data",
             colas$Q32[unclass(colas$Q32) == 1] <- NA
             colas.small <- colas[, colnames(colas) %in% c("Q32", "Q3", "Q2", "Q4_A", "Q4_B", "Q4_C", "Q11", "Q12")]
             colas.small$Q3[1] <- NA
-            expect_error((suppressWarnings(CART(Q32 ~ Q3, data = colas.small, subset = TRUE,
-                                                weights = NULL, output = type, missing = missing))), NA)
-            expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                                                data = bank, subset = TRUE,  weights = NULL, output = type, missing = missing))), NA)
+            no.cat.warn <- "Some categories do not appear in the data"
+            exclude.warn <- r"(^\d{2}\% of the data is missing)"
+            expect_warning(CART(Q32 ~ Q3, data = colas.small, subset = TRUE,
+                                weights = NULL, output = type, missing = missing),
+                           if (!imputation) no.cat.warn else NA)
+            expect_warning(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                                data = bank, subset = TRUE,  weights = NULL, output = type,
+                                missing = missing),
+                           if (exclude) exclude.warn else NA)
             # filter
-            expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                                                data = bank, subset = bank$ID > 100,  weights = NULL, output = type,
-                                                missing = missing))), NA)
+            expect_warning(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                                data = bank, subset = bank$ID > 100,  weights = NULL, output = type,
+                                missing = missing),
+                           if (exclude) exclude.warn else NA)
             # weight
-            expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                                                data = bank, subset = TRUE,  weights = bank$ID, output = type,
-                                                missing = missing))), NA)
+            expect_warning(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                                data = bank, subset = TRUE, weights = bank$ID, output = type,
+                                missing = missing),
+                           if (exclude) exclude.warn else NA)
             # weight and filter
-            expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                                                data = bank, subset = bank$ID > 100,  weights = bank$ID,
-                                                output = type, missing = missing))), NA)
+            expect_warning(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                                data = bank, subset = bank$ID > 100,  weights = bank$ID,
+                                output = type, missing = missing),
+                           if (exclude) exclude.warn else NA)
 })
 
 
 for (pruning in c("None", "Minimum error", "Smallest tree"))
     for (stopping in c(TRUE, FALSE))
-        test_that(paste(missing, type),
-            {
-            expect_error((suppressWarnings(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
-                                                subset = bank$ID > 100, weights = bank$ID,
-                                                output = "Sankey", missing = "Exclude cases with missing data",
-                                                prune = pruning, early.stopping = stopping))), NA)
+        test_that(paste(missing, type), {
+            expect_warning(CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
+                                subset = bank$ID > 100, weights = bank$ID,
+                                output = "Sankey", missing = "Exclude cases with missing data",
+                                prune = pruning, early.stopping = stopping),
+                           r"(^\d{2}\% of the data is missing)")
 })
 
 
