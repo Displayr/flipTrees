@@ -8,46 +8,41 @@ data(bank, package = "flipExampleData")
 bank$fOverall <- factor(bank$Overall)
 levels(bank$fOverall) <- c(levels(bank$fOverall), "8")    # add an empty factor level
 
-test_that("saving variables",
-    {
-        z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
-                  subset = bank$ID > 100)
-        expect_error(predict(z), NA)
-        expect_error(flipData::Probabilities(z))
+test_that("saving variables", {
+    z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank,
+              subset = bank$ID > 100)
+    expect_error(predict(z), NA)
+    expect_error(flipData::Probabilities(z))
 
-        z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
-                                   data = bank, subset = bank$ID > 100))
-        expect_error(predict(z), NA)
-        expect_error(flipData::Probabilities(z), NA)
-        expect_error(print(z), NA)
-        expect_error(print(z, custom.color = NULL), NA)
-    })
+    z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
+                               data = bank, subset = bank$ID > 100))
+    expect_error(predict(z), NA)
+    expect_error(flipData::Probabilities(z), NA)
+    expect_error(print(z), NA)
+    expect_error(print(z, custom.color = NULL), NA)
+})
 
 
 z <- CART(Overall ~ Fees + Interest + Phone + Branch + Online + ATM, data = bank, subset = bank$ID > 100)
-test_that("rpart prediction",
-    {
-        expect_equal(unname(predict(z)[1]), 4.258064516129032)
-    })
+test_that("rpart prediction",{
+    expect_equal(unname(predict(z)[1]), 4.258064516129032)
+})
 
 
 z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
                            data = bank, subset = bank$ID > 100))
-test_that("rpart Probabilities",
-    {
-        expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2444444444444445)
-    })
+test_that("rpart Probabilities", {
+    expect_equal(unname(flipData::Probabilities(z)[1, 4]), 0.2444444444444445)
+})
 
 z <- suppressWarnings(CART(fOverall ~ Fees + Interest + Phone + Branch + Online + ATM,
                            data = bank, subset = bank$ID > 100))
-
 
 # Reading in the libraries so that their outputs do not pollute the test results.
 library(mice)
 library(hot.deck)
 
-test_that("Error if missing data",
-{
+test_that("Error if missing data", {
     type <- "Sankey"
     # Changing data
     expect_error((CART(yesno ~ crl.tot + dollar + bang + money + n000 + make,
@@ -173,7 +168,6 @@ test_that("label abbrev",
     expect_equal(dim(res.abbrv$splits), dim(res.full$splits))
 })
 
-
 data(adult.2000, package = "flipExampleData")
 set.seed(1234)
 adult.2000$race[runif(2000) > 0.9] <- NA
@@ -193,9 +187,7 @@ test_that("Infinity allowed in predictors but not outcome", {
                       missing = "Exclude cases with missing data"), NA)
 })
 
-
 test_that("Many factor levels", {
-
     df <- data.frame(x = as.factor(rep_len(c("A", "B"), length.out = 100)),
                      y = as.factor(rep_len(c(seq(50)), length.out = 100)),
                      z = runif(100))
@@ -204,8 +196,7 @@ test_that("Many factor levels", {
                  fixed = TRUE)
 })
 
-test_that("predict method works with old outputs; DS-2488",
-{
+test_that("predict method works with old outputs; DS-2488", {
     load("oldCART.rda")
     expect_error(predict(cart), NA)
 })
