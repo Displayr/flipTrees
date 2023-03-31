@@ -54,7 +54,7 @@ globalVariables(c(".weight.1232312", ".estimation.data"))
 #' @details Creates an \code{\link[rpart]{rpart.object}} tree and plots it as a
 #'     \code{\link{SankeyTree}}
 #' @importFrom flipData GetData CalibrateWeight ErrorIfInfinity
-#' @importFrom flipData EstimationData
+#' @importFrom flipData EstimationData EstimationDataTemplate
 #' @importFrom flipFormat Labels
 #' @importFrom flipRegression ConfusionMatrix
 #' @importFrom flipU OutcomeName
@@ -101,7 +101,15 @@ CART <- function(formula,
 
     set.seed(seed)
     outcome.name <- OutcomeName(formula)
+    # Create the template for the data before the labels are shortened
+    estimation.data.template <- EstimationDataTemplate(data)
     data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
+    # Update the labels in the template if required.
+    estimation.data.template <- appendShortenedLabelsToTemplate(estimation.data.template,
+                                                                data,
+                                                                outcome.name,
+                                                                predictor.level.treatment,
+                                                                outcome.level.treatment)
     processed.data <- EstimationData(formula, data, subset, weights, missing)
     ErrorIfInfinity(processed.data$estimation.data[outcome.name])
 
@@ -147,6 +155,7 @@ CART <- function(formula,
 
     class(result) <- c("CART", "MachineLearning", class(result))
 
+    result[["estimation.data.template"]] <- estimation.data.template
     result$predictor.level.treatment <- predictor.level.treatment
     result$n.observations <- nrow(estimation.data)
     result$missing <- missing
@@ -172,7 +181,7 @@ CART <- function(formula,
     result$confusion <- ConfusionMatrix(result, subset, unfiltered.weights, decimals = decimals)
     attr(result, "ChartData") <- prepareChartData(result)
 
-    return(result)
+    result
 }
 
 # This function generates hash tables to facilitate uniqueness checking and searching, etc.
@@ -268,6 +277,52 @@ shortenFactorLevels <- function(data, outcome.name, predictor.level.treatment, o
             }
         }
     result
+}
+
+# Update the Estimation data template with shortened labels
+appendShortenedLabelsToTemplate <- function(estimation.data.template,
+                                            data,
+                                            outcome.name,
+                                            predictor.level.treatment,
+                                            outcome.level.treatment)
+{
+    factor.variables <- vapply(data, is.factor, logical(1L))
+    # Nothing to update as no factors present
+    if (!any(factor.variables)) return(estimation.data.template)
+    # Check which variables need an update
+    predictors.need.update <- predictor.level.treatment != "Full labels"
+    outcome.needs.update <- outcome.level.treatment != "Full labels"
+    # Tag the variables that need an update (have shortened labels)
+    factors.to.update <- factor.variables
+    factors.to.update[[outcome.name]] <- outcome.needs.update
+    factors.to.update[names(factors.to.update) != outcome.name] <- predictors.need.update
+    # Update only the ones necessary using the helper function updateLabelsInTemplate
+    estimation.data.template[factor.variables] <- mapply(
+        FUN = updateLabelsInTemplate,
+        estimation.data.template[factor.variables],
+        data[factor.variables],
+        factors.to.update[factor.variables],
+        SIMPLIFY = FALSE
+    )
+    estimation.data.template
+}
+
+# Update the variable template
+#' @param variable.template The existing variable template
+#' @param data.variable The variable from the data (i.e. the complete factor variable)
+#' @param needs.update A boolean indicating whether the variable needs an update
+#' @return The updated variable template, if not update required, just a boolean appended
+#'         with FALSE. Otherwise it is true and the shortened levels and observed shortened
+#'         levels are appended.
+#' @noRd
+updateLabelsInTemplate <- function(variable.template, data.variable, needs.update) {
+    variable.template[["levels.shortened"]] <- needs.update
+    if (!needs.update) return(variable.template)
+    # Update the levels
+    x.levels <- levels(data.variable)
+    variable.template[["short.levels"]] <- x.levels
+    variable.template[["observed.short.levels"]] <- x.levels[which(tabulate(data.variable) > 0L)]
+    variable.template
 }
 
 textTreeWithLabels <- function(text, labels, model)
