@@ -61,6 +61,7 @@ test_that("CART produces template for simulator", {
             question = "Chopstick.Length (categorical)",
             levels = c("180", "210", "240", "270", "300", "330"),
             observed.levels = c("180", "210", "240", "270", "300", "330"),
+            has.unobserved.levels = FALSE,
             ordered = FALSE,
             levels.shortened = FALSE
         )
@@ -90,6 +91,7 @@ test_that("CART produces template for simulator", {
     expected.unobs.template <- expected.template
     expected.unobs.template[["chopsticks"]][["levels"]] <- levels(chopsticks)
     expected.unobs.template[["chopsticks"]][["observed.levels"]] <- levels(original.chopsticks)
+    expected.unobs.template[["chopsticks"]][["has.unobserved.levels"]] <- TRUE
     expected.unobs.template[["chopsticks"]][["levels.shortened"]] <- FALSE
     expect_equal(model.with.warn[["estimation.data.template"]],
                  expected.unobs.template)
@@ -113,6 +115,7 @@ test_that("CART produces template for simulator", {
     expected.short.template <- expected.template
     expected.short.template[["chopsticks"]][["levels"]] <- raw.new.levels
     expected.short.template[["chopsticks"]][["observed.levels"]] <- raw.new.levels[-last.level]
+    expected.short.template[["chopsticks"]][["has.unobserved.levels"]] <- TRUE
     expected.short.template[["chopsticks"]][["levels.shortened"]] <- TRUE
     short.levels <- getShortenedLevels(raw.new.levels)
     expected.short.template[["chopsticks"]][["short.levels"]] <- short.levels
