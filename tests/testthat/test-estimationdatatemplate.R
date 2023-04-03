@@ -37,6 +37,12 @@ other.factor <- factor(rep(c("A", "B", "C"), each = 31L))
 
 # Validate the estimation data template for all variables
 test_that("CART produces template for simulator", {
+    default.values <- list(
+        food = min(food),
+        chopsticks = levels(chopsticks)[1L],
+        other = min(other),
+        other.factor = levels(other.factor)[1L]
+    )
     cart.args <- list(
         formula = food ~ chopsticks,
         early.stopping = FALSE,
@@ -51,7 +57,8 @@ test_that("CART produces template for simulator", {
             questiontype = "Number",
             name = "Food.Pinching.Effeciency",
             label = "Food.Pinching.Effeciency",
-            question = "Food.Pinching.Effeciency"
+            question = "Food.Pinching.Effeciency",
+            default.value = default.values[["food"]]
         ),
         chopsticks = list(
             type = "factor",
@@ -63,6 +70,7 @@ test_that("CART produces template for simulator", {
             observed.levels = c("180", "210", "240", "270", "300", "330"),
             has.unobserved.levels = FALSE,
             ordered = FALSE,
+            default.value = default.values[["chopsticks"]],
             levels.shortened = FALSE
         )
     )
@@ -116,6 +124,7 @@ test_that("CART produces template for simulator", {
     expected.short.template[["chopsticks"]][["levels"]] <- raw.new.levels
     expected.short.template[["chopsticks"]][["observed.levels"]] <- raw.new.levels[-last.level]
     expected.short.template[["chopsticks"]][["has.unobserved.levels"]] <- TRUE
+    expected.short.template[["chopsticks"]][["default.value"]] <- unname(new.levels[1L])
     expected.short.template[["chopsticks"]][["levels.shortened"]] <- TRUE
     short.levels <- getShortenedLevels(raw.new.levels)
     expected.short.template[["chopsticks"]][["short.levels"]] <- short.levels
@@ -133,6 +142,7 @@ test_that("CART produces template for simulator", {
     expect_silent(model.other.preds <- do.call(CART, cart.args.other.preds))
     expected.template.other <- expected.template
     expected.template.other[["other"]] <- list(type = "numeric")
+    expected.template.other[["other"]][["default.value"]] <- default.values[["other"]]
     expect_equal(model.other.preds[["estimation.data.template"]], expected.template.other)
     # Check consistent naming
     expect_equal(names(model.other.preds[["estimation.data.template"]]), c("food", "chopsticks", "other"))
