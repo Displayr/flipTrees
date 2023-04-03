@@ -66,11 +66,19 @@ test_that("CART produces template for simulator", {
         )
     )
     expect_equal(model[["estimation.data.template"]], expected.template)
+    # Check consistent naming
+    expect_equal(names(model[["estimation.data.template"]]), c("food", "chopsticks"))
+    expect_equal(names(model[["estimation.data.template"]]),
+                 names(model[["model"]]))
     # Make the outcome a factor
     cart.args.rev.form <- cart.args
     cart.args.rev.form[["formula"]] <- chopsticks ~ food
     expect_silent(model.rev <- do.call(CART, cart.args.rev.form))
     expect_equal(model.rev[["estimation.data.template"]], rev(expected.template))
+    # Check consistent naming
+    expect_equal(names(model.rev[["estimation.data.template"]]), c("chopsticks", "food"))
+    expect_equal(names(model.rev[["estimation.data.template"]]),
+                 names(model.rev[["model"]]))
     # With unobserved level
     original.chopsticks <- chopsticks
     levels(chopsticks) <- c(levels(chopsticks), "Foo")
@@ -85,6 +93,10 @@ test_that("CART produces template for simulator", {
     expected.unobs.template[["chopsticks"]][["levels.shortened"]] <- FALSE
     expect_equal(model.with.warn[["estimation.data.template"]],
                  expected.unobs.template)
+    # Check consistent naming
+    expect_equal(names(model.with.warn[["estimation.data.template"]]), c("food", "chopsticks"))
+    expect_equal(names(model.with.warn[["estimation.data.template"]]),
+                 names(model.with.warn[["model"]]))
     # With shortened labels
     chopsticks <- original.chopsticks
     original.levels <- levels(chopsticks) # 180, 210, 240, 270, 300, 330
@@ -105,6 +117,10 @@ test_that("CART produces template for simulator", {
     short.levels <- getShortenedLevels(raw.new.levels)
     expected.short.template[["chopsticks"]][["short.levels"]] <- short.levels
     expected.short.template[["chopsticks"]][["observed.short.levels"]] <- short.levels[-last.level]
+    # Check consistent naming
+    expect_equal(names(model.short.preds[["estimation.data.template"]]), c("food", "chopsticks"))
+    expect_equal(names(model.short.preds[["estimation.data.template"]]),
+                 names(model.short.preds[["model"]]))
     expect_equal(model.short.preds[["estimation.data.template"]],
                  expected.short.template)
     chopsticks <- original.chopsticks
@@ -115,9 +131,17 @@ test_that("CART produces template for simulator", {
     expected.template.other <- expected.template
     expected.template.other[["other"]] <- list(type = "numeric")
     expect_equal(model.other.preds[["estimation.data.template"]], expected.template.other)
+    # Check consistent naming
+    expect_equal(names(model.other.preds[["estimation.data.template"]]), c("food", "chopsticks", "other"))
+    expect_equal(names(model.other.preds[["estimation.data.template"]]),
+                 names(model.other.preds[["model"]]))
     # Check order is preserved
     cart.args.other.preds[["formula"]] <- food ~ other + chopsticks
     expect_silent(model.other.preds <- do.call(CART, cart.args.other.preds))
     expected.template.other <- expected.template.other[c("food", "other", "chopsticks")]
     expect_equal(model.other.preds[["estimation.data.template"]], expected.template.other)
+    # Check consistent naming
+    expect_equal(names(model.other.preds[["estimation.data.template"]]), c("food", "other", "chopsticks"))
+    expect_equal(names(model.other.preds[["estimation.data.template"]]),
+                 names(model.other.preds[["model"]]))
 })
