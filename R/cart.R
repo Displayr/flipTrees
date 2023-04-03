@@ -1,5 +1,3 @@
-globalVariables(c(".weight.1232312", ".estimation.data"))
-
 #' Creates a classification or regression tree.
 #'
 #' @param formula A formula expression. The left-hand-side (response)
