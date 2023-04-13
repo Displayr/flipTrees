@@ -51,28 +51,31 @@ test_that("CART produces template for simulator", {
     )
     expect_silent(model <- do.call(CART, cart.args))
     # Basic template with factor predictor, no shortening
-    expected.template <- list(
-        food = list(
-            type = "numeric",
-            questiontype = "Number",
-            name = "Food.Pinching.Effeciency",
-            label = "Food.Pinching.Effeciency",
-            question = "Food.Pinching.Effeciency",
-            default.value = default.values[["food"]]
+    expected.template <- structure(
+        list(
+            food = list(
+                type = "numeric",
+                questiontype = "Number",
+                name = "Food.Pinching.Effeciency",
+                label = "Food.Pinching.Effeciency",
+                question = "Food.Pinching.Effeciency",
+                default.value = default.values[["food"]]
+            ),
+            chopsticks = list(
+                type = "factor",
+                questiontype = "PickOne",
+                name = "Chopstick.Length_2",
+                label = "Chopstick.Length (categorical)",
+                question = "Chopstick.Length (categorical)",
+                levels = c("180", "210", "240", "270", "300", "330"),
+                observed.levels = c("180", "210", "240", "270", "300", "330"),
+                has.unobserved.levels = FALSE,
+                ordered = FALSE,
+                default.value = default.values[["chopsticks"]],
+                levels.shortened = FALSE
+            )
         ),
-        chopsticks = list(
-            type = "factor",
-            questiontype = "PickOne",
-            name = "Chopstick.Length_2",
-            label = "Chopstick.Length (categorical)",
-            question = "Chopstick.Length (categorical)",
-            levels = c("180", "210", "240", "270", "300", "330"),
-            observed.levels = c("180", "210", "240", "270", "300", "330"),
-            has.unobserved.levels = FALSE,
-            ordered = FALSE,
-            default.value = default.values[["chopsticks"]],
-            levels.shortened = FALSE
-        )
+        outcome.name = "food"
     )
     expect_equal(model[["estimation.data.template"]], expected.template)
     # Check consistent naming
@@ -83,7 +86,9 @@ test_that("CART produces template for simulator", {
     cart.args.rev.form <- cart.args
     cart.args.rev.form[["formula"]] <- chopsticks ~ food
     expect_silent(model.rev <- do.call(CART, cart.args.rev.form))
-    expect_equal(model.rev[["estimation.data.template"]], rev(expected.template))
+    rev.expected.template <- rev(expected.template)
+    attr(rev.expected.template, "outcome.name") <- "chopsticks"
+    expect_equal(model.rev[["estimation.data.template"]], rev.expected.template)
     # Check consistent naming
     expect_equal(names(model.rev[["estimation.data.template"]]), c("chopsticks", "food"))
     expect_equal(names(model.rev[["estimation.data.template"]]),
@@ -152,6 +157,7 @@ test_that("CART produces template for simulator", {
     cart.args.other.preds[["formula"]] <- food ~ other + chopsticks
     expect_silent(model.other.preds <- do.call(CART, cart.args.other.preds))
     expected.template.other <- expected.template.other[c("food", "other", "chopsticks")]
+    attr(expected.template.other, "outcome.name") <- "food"
     expect_equal(model.other.preds[["estimation.data.template"]], expected.template.other)
     # Check consistent naming
     expect_equal(names(model.other.preds[["estimation.data.template"]]), c("food", "other", "chopsticks"))

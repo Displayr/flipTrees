@@ -60,7 +60,6 @@
 #' @importFrom stats na.exclude binomial predict as.formula
 #' @importFrom utils capture.output
 #' @export
-
 CART <- function(formula,
                  data = NULL,
                  subset = NULL,
@@ -78,7 +77,6 @@ CART <- function(formula,
                  seed = 12321,
                  ...)
 {
-    cl <- match.call()
     .formula <- formula # Hack to work past scoping issues in car package: https://cran.r-project.org/web/packages/car/vignettes/embedding.pdf.
     subset.description <- try(deparse(substitute(subset)), silent = TRUE) #We don't know whether subset is a variable in the environment or in data.
     subset <- eval(substitute(subset), data, parent.frame())
@@ -100,7 +98,7 @@ CART <- function(formula,
     set.seed(seed)
     outcome.name <- OutcomeName(formula)
     # Create the template for the data before the labels are shortened
-    estimation.data.template <- EstimationDataTemplate(data)
+    estimation.data.template <- EstimationDataTemplate(data, outcome.name = outcome.name)
     data <- shortenFactorLevels(data, outcome.name, predictor.level.treatment, outcome.level.treatment)
     # Update the labels in the template if required.
     estimation.data.template <- appendShortenedLabelsToTemplate(estimation.data.template,
