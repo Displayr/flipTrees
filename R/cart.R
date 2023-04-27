@@ -361,7 +361,7 @@ extendLetters <- function(n) {
 #' If omitted, the \code{data} supplied to \code{CART()} is used before any filtering.
 #' @param ... Extra parameters. Currently not used.
 #' @importFrom stats na.pass na.omit complete.cases
-#' @importFrom flipData CheckPredictionVariables
+#' @importFrom flipData ValidateNewData
 #' @export
 predict.CART <- function(object, newdata = NULL, seed = 1232, ...)
 {
@@ -374,13 +374,7 @@ predict.CART <- function(object, newdata = NULL, seed = 1232, ...)
             newdata[[name]] <- as.factor(newdata[[name]])
     }
     newdata <- shortenFactorLevels(newdata, "", object$predictor.level.treatment, NULL)
-
-    # no warnings from CheckPredictionVariables if predicting training data
-    newdata <- if (is.null(newdata))
-        # no warnings from CheckPredictionVariables if predicting training data
-        suppressWarnings(CheckPredictionVariables(object, object$model))
-    else
-        CheckPredictionVariables(object, newdata)
+    newdata <- ValidateNewData(object, newdata)
 
     class(object) <- "rpart"
 
@@ -397,30 +391,27 @@ predict.CART <- function(object, newdata = NULL, seed = 1232, ...)
             predict(object, type = type, newdata = newdata[complete.cases(newdata), , drop = FALSE], na.action = na.omit)
         return(newdata$prediction)
     }
-    else
-        predict(object, type = type, newdata = newdata, na.action = na.pass)
+    predict(object, type = type, newdata = newdata, na.action = na.pass)
 }
 
 #' @importFrom flipData Probabilities
+#' @export
 flipData::Probabilities
 
-#' Probabilities.CART
-#'
-#' @param object The \code{CART} object whose values are to be predicted.
-#' @param ... Not used.
 #' @importFrom stats na.pass
 #' @importFrom flipU OutcomeName
 #' @export
-Probabilities.CART <- function(object, ...)
+Probabilities.CART <- function(object, newdata = NULL, ...)
 {
     ## old CART outputs used outcome.numeric instead of numeric.outcome; DS-2488
     if (is.null(object$numeric.outcome))
         object$numeric.outcome <- object$outcome.numeric
-    if(object$numeric.outcome)
+    if (object$numeric.outcome)
         stop("Probabilities not available for numeric dependent variables.")
 
+    newdata <- ValidateNewData(object, newdata)
     class(object) <- "rpart"
-    m <- predict(object, type = "matrix", newdata = object$model, na.action = na.pass)
+    m <- predict(object, type = "matrix", newdata = newdata, na.action = na.pass)
 
     outcome.variable <- object$model[[OutcomeName(object$terms)]]
     all.levels <- levels(outcome.variable)
@@ -471,25 +462,18 @@ print.CART <- function(x, ...)
     {
         plotcp(x, col = 4)
     }
-    #else if (x$output == "Decision Rules")
-    #{
-    #    asRules(x)
-    #}
     else
-        stop(paste("Unhandled output: ", x$output))
+        stop("Unhandled output: ", x$output)
 }
 
 prepareChartData <- function(x)
 {
     if (x$output == "Cross Validation")
         return(x$cptable)
-    else if (x$output == "Prediction-Accuracy Table")
+    if (x$output == "Prediction-Accuracy Table")
         return(ExtractChartData(x$confusion))
-    else
-    {
-        class(x) <- "rpart"
-        return(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model))
-    }
+    class(x) <- "rpart"
+    return(textTreeWithLabels(paste(capture.output(x), collapse = "\n"), x$labels, x$model))
 }
 
 #' @importFrom flipFormat ExtractChartData
@@ -500,5 +484,5 @@ flipFormat::ExtractChartData
 #' @export
 ExtractChartData.CART <- function(x)
 {
-    return(ExtractChartData(x$confusion))
+    ExtractChartData(x$confusion)
 }
