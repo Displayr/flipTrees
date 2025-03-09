@@ -1,7 +1,7 @@
 Package: flipTrees
 Type: Package
 Title: Tools for classification and regression trees
-Version: 1.0.6
+Version: 1.0.7
 Author: Displayr <opensource@displayr.com>
 Maintainer: Displayr <opensource@displayr.com>
 Description: Wrappers for classification and regression trees using the
@@ -34,5 +34,5 @@ Remotes:
     Displayr/flipU,
     Displayr/rhtmlSankeyTree,
     Displayr/verbs
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Encoding: UTF-8

@@ -202,7 +202,7 @@ computeYProb <- function(outcome.var, row.i, node.row.i)
     yprob
 }
 
-#' @importFrom flipU OutcomeName
+#' @importFrom flipU OutcomeName StopForUserError
 partyToTreeFrame <- function(obj)
 {
     outcome.var <- obj$data[[OutcomeName(obj$terms)]]
@@ -234,7 +234,7 @@ partyToTreeFrame <- function(obj)
         {
             idx <- nd$index
             if (length(idx) > length(letters))
-                stop("There are too many levels in the factor to be represented by letters.")
+                StopForUserError("There are too many levels in the factor to be represented by letters.")
             lttrs <- letters[1:length(idx)]
             splits[i, 1] <- paste0(":", paste(lttrs[!is.na(idx) & idx == 1], collapse = ""))
             splits[i, 2] <- paste0(":", paste(lttrs[!is.na(idx) & idx == 2], collapse = ""))

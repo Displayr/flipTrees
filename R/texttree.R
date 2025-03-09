@@ -23,6 +23,7 @@ print.textPredictiveTree <- function(x, ...){
 #' @param subset An option vector describing the subset of rows from \code{data} that are to be used to generate the tree.
 #' @inheritParams CART
 #' @importFrom flipData ErrorIfMissingDataFound RemoveCasesWithAllNA RemoveCasesWithAnyNA
+#' @importFrom flipU StopForUserError
 #' @export
 CheckDataForTextTree <- function(data, weights = NULL, subset = NULL, missing = "Exclude cases with missing data")
 {
@@ -53,7 +54,7 @@ CheckDataForTextTree <- function(data, weights = NULL, subset = NULL, missing = 
 
     if (num.valid < ncol(data))
     {
-        stop("The predictive tree requires that there are fewer words than cases in the data. To reduce the number of words in the analysis, increase the word frequency specified in the initial text analysis.")
+        StopForUserError("The predictive tree requires that there are fewer words than cases in the data. To reduce the number of words in the analysis, increase the word frequency specified in the initial text analysis.")
     }
     return(TRUE)
 }
@@ -86,4 +87,3 @@ CreateTextTree <- function(tree,
     tree$print.table <- output == "Table"
     return(tree)
 }
-
