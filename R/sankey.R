@@ -24,7 +24,8 @@
 #' @importFrom colorspace diverge_hsv
 #' @importFrom grDevices rgb rgb2hsv col2rgb hsv
 #' @importFrom verbs Sum
-#'
+#' @importFrom flipU StopForUserError
+#' @noRd
 treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip.length = 150,
                             numeric.distribution = TRUE, custom.color = "default", num.color.div = 101,
                             const.bin.size = TRUE)
@@ -243,7 +244,7 @@ treeFrameToList <- function(frame, xlevels, model, assigned, labels, max.tooltip
                 base.colors = custom.color
             }
 
-            if (num.color.div < 2) stop('number of colors for the tree cannot be < 2')
+            if (num.color.div < 2) StopForUserError('number of colors for the tree cannot be < 2')
             if (num.color.div %% 2 == 0) num.color.div = num.color.div + 1
             base.colors = base.colors[1:2]
             hsv.base.colors = rgb2hsv(col2rgb(base.colors))

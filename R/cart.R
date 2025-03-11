@@ -55,7 +55,7 @@
 #' @importFrom flipData EstimationData EstimationDataTemplate
 #' @importFrom flipFormat Labels
 #' @importFrom flipRegression ConfusionMatrix
-#' @importFrom flipU OutcomeName
+#' @importFrom flipU OutcomeName StopForUserError
 #' @importFrom rpart rpart rpart.control prune
 #' @importFrom stats na.exclude binomial predict as.formula
 #' @importFrom utils capture.output
@@ -116,10 +116,10 @@ CART <- function(formula,
     lev <- sapply(estimation.data[!colnames(estimation.data) %in% outcome.name],
                   function(x) length(levels(x)))
     if (!long.running.calculations && max(lev) > 30)
-        stop("There are more than 30 categories in predictor variable(s) ",
-             paste(Labels(data, names(which.max(lev))), collapse = ", "),
-             ". This may cause the analysis to take a long time to run.",
-             " Please check 'Allow long-running calculations' to proceed.")
+        StopForUserError("There are more than 30 categories in predictor variable(s) ",
+                         paste(Labels(data, names(which.max(lev))), collapse = ", "),
+                         ". This may cause the analysis to take a long time to run.",
+                         " Please check 'Allow long-running calculations' to proceed.")
 
     cp <- ifelse(early.stopping, 0.01, 0)
     control <- rpart.control(cp = cp)
@@ -399,7 +399,7 @@ predict.CART <- function(object, newdata = NULL, seed = 1232, ...)
 flipData::Probabilities
 
 #' @importFrom stats na.pass
-#' @importFrom flipU OutcomeName
+#' @importFrom flipU OutcomeName StopForUserError
 #' @export
 Probabilities.CART <- function(object, newdata = NULL, ...)
 {
@@ -407,7 +407,7 @@ Probabilities.CART <- function(object, newdata = NULL, ...)
     if (is.null(object$numeric.outcome))
         object$numeric.outcome <- object$outcome.numeric
     if (object$numeric.outcome)
-        stop("Probabilities not available for numeric dependent variables.")
+        StopForUserError("Probabilities not available for numeric dependent variables.")
 
     newdata <- ValidateNewData(object, newdata)
     class(object) <- "rpart"
@@ -428,12 +428,13 @@ Probabilities.CART <- function(object, newdata = NULL, ...)
 #' @importFrom graphics plot
 #' @importFrom rhtmlSankeyTree SankeyTree
 #' @importFrom rpart plotcp
+#' @importFrom flipU StopForUserError
 #' @export
 print.CART <- function(x, ...)
 {
     if (nrow(x$frame) == 1)
-        stop("Output tree has one node and no splits. Either change the input data or relax early",
-             " stopping or pruning to produce a larger tree.")
+        StopForUserError("Output tree has one node and no splits. Either change the input data or relax early",
+                         " stopping or pruning to produce a larger tree.")
 
     if (x$output == "Sankey")
     {
